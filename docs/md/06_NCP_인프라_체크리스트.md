@@ -108,11 +108,11 @@ S3_PATH_STYLE=true   # NCP가 가상호스트 방식만 받으면 false ▲
 
 | 서브넷 | 예시 CIDR | 종류 | 쓰임 |
 | --- | --- | --- | --- |
-| yhm-sbn-lb | 10.0.0.0/24 | Public, 용도 Load Balancer ▲ | Public Load Balancer |
-| yhm-sbn-nat | 10.0.1.0/24 | Public, 용도 NAT Gateway ▲ | NAT Gateway |
-| yhm-sbn-web | 10.0.10.0/24 | Private | Nginx 서버 |
-| yhm-sbn-app | 10.0.20.0/24 | Private | WAS 서버 |
-| yhm-sbn-db | 10.0.30.0/24 | Private | Cloud DB for MySQL |
+| yhm-sub-lb | 10.0.0.0/24 | Public, 용도 Load Balancer ▲ | Public Load Balancer |
+| yhm-sub-nat | 10.0.1.0/24 | Public, 용도 NAT Gateway ▲ | NAT Gateway |
+| yhm-sub-web | 10.0.10.0/24 | Private | Nginx 서버 |
+| yhm-sub-app | 10.0.20.0/24 | Private | WAS 서버 |
+| yhm-sub-db | 10.0.30.0/24 | Private | Cloud DB for MySQL |
 
 - [ ] 서브넷 종류·용도 요건(LB 전용·NAT 전용 서브넷 필요 여부)은 공식 문서로 확인 ▲
 - [ ] Route Table: Private 서브넷의 `0.0.0.0/0` → NAT Gateway
@@ -133,13 +133,14 @@ S3_PATH_STYLE=true   # NCP가 가상호스트 방식만 받으면 false ▲
 ### 4.4 서버(Web · App)
 
 - [ ] 서버 2대 생성: 이미지 Ubuntu 22.04 ▲, 처음엔 작은 사양, Private Subnet, 해당 ACG
-- [ ] **로그인 키(.pem)** 발급 → 안전하게 보관(깃·노트 금지). 서버 비밀번호는 콘솔에서 키로 조회
+- [ ] **로그인 키(.pem)**: 별도 메뉴가 없고 **서버 생성 마법사의 "인증키 설정" 단계에서 "신규 인증키 생성"**(이름 `yhm-dev-key`)으로 만든다. `.pem`은 **한 번만 내려받아지므로** 바로 `~/.ssh/`로 옮기고 `chmod 400` 한 뒤 비밀번호 관리 도구에도 보관(깃·노트 금지). 서버 접속 비밀번호는 서버 생성 후 콘솔의 "관리자 비밀번호 확인"에 `.pem`을 올려 조회한다 ▲ 화면 확인 필요
+- [ ] 서버 사양은 **메모리(GB)를 확인**하고 정한다. Micro(g3)는 "결제 정보 등록 시 1년 무료"로 표시되지만 Java 21 + Nginx에는 메모리가 빠듯할 수 있다 ▲
 - [ ] 접속 경로: Private 서버는 외부에서 직접 못 들어간다. (a) 임시로 공인 IP를 붙이거나 (b) 점프 서버(bastion) 하나를 둔다 ▲ — 시연 후 공인 IP 반납
 - [ ] 시간대 확인(서버는 UTC, 앱은 `Asia/Seoul` 기준으로 오늘 일차를 계산하므로 별도 설정 불필요)
 
 ### 4.5 Cloud DB for MySQL
 
-- [ ] Cloud DB for MySQL 생성: 버전 **8.0**, Private Subnet(`yhm-sbn-db`), 문자셋 `utf8mb4`
+- [ ] Cloud DB for MySQL 생성: 버전 **8.0**, Private Subnet(`yhm-sub-db`), 문자셋 `utf8mb4`
 - [ ] DB 이름 `yeohaengmal`, 사용자 `yhm`, **비밀번호는 비밀 관리**
 - [ ] DB ACG에서 3306을 WAS(app ACG)에서만 허용
 - [ ] 접속해서 `db/01_schema.sql` → `db/02_common_code.sql` 순서로 실행(백엔드 저장소 `db/`)
@@ -167,11 +168,11 @@ S3_PATH_STYLE=true   # NCP가 가상호스트 방식만 받으면 false ▲
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | VPC | yhm-dev-vpc | 10.0.0.0/16 | - | | | | |
 | Object Storage 버킷 | | | | A | | | 엔드포인트·리전은 비고에 |
-| Cloud DB for MySQL | | 8.0 | yhm-sbn-db | A | | | |
-| Server(Web) | | | yhm-sbn-web | E | | | |
-| Server(App) | | | yhm-sbn-app | E | | | |
-| NAT Gateway | | | yhm-sbn-nat | E | | | |
-| Load Balancer | | | yhm-sbn-lb | E | | | |
+| Cloud DB for MySQL | | 8.0 | yhm-sub-db | A | | | |
+| Server(Web) | | | yhm-sub-web | E | | | |
+| Server(App) | | | yhm-sub-app | E | | | |
+| NAT Gateway | | | yhm-sub-nat | E | | | |
+| Load Balancer | | | yhm-sub-lb | E | | | |
 | 인증서/도메인 | | | - | E | | | |
 
 ---
@@ -238,6 +239,54 @@ server {
 - [ ] 프로젝트 종료 후 리소스 **전부 삭제**(버킷 안 파일 포함). 대장의 "상태" 열로 확인
 - [ ] 키 유출 시: 해당 인증키를 즉시 삭제·재발급하고 팀에 알린다
 - [ ] `.env`, `.pem`, 비밀번호는 깃에 올리지 않는다(백엔드 `.gitignore`에 `.env`·`*.pem` 포함)
+
+---
+
+## 7. 구축 현황 (2026-10-06 기준, 계속 갱신)
+
+> 이어받는 사람은 이 표를 기준으로 진행한다. **SSH(22) 규칙은 설정자 본인(서준호) PC의 공인 IP 한 개(`/32`)만 허용**하도록 만들었다. 다른 팀원이 서버에 접속하려면 **본인 IP를 규칙에 추가**해야 한다(4.3 참고). IP 숫자 자체는 이 문서에 적지 않는다.
+
+### 7.1 만든 것
+
+| 리소스 | 이름 | ID | 설정 | 만든 사람 | 상태 |
+| --- | --- | --- | --- | --- | --- |
+| VPC | yhm-dev-vpc | - | 10.0.0.0/16 | 서준호 | 운영중 |
+| Subnet | yhm-sub-lb | 328400 | 10.0.0.0/24, KR-1, Public, 용도 LoadBalancer | 서준호 | 운영중 |
+| Subnet | yhm-sub-nat | 328401 | 10.0.1.0/24, KR-1, Public, 용도 NatGateway | 서준호 | 운영중 |
+| Subnet | yhm-sub-web | 328402 | 10.0.10.0/24, KR-1, Private, 일반 | 서준호 | 운영중 |
+| Subnet | yhm-sub-app | 328403 | 10.0.20.0/24, KR-1, Private, 일반 | 서준호 | 운영중 |
+| Subnet | yhm-sub-db | 328404 | 10.0.30.0/24, KR-1, Private, 일반 | 서준호 | 운영중 |
+| ACG(기본) | yhm-dev-vpc-default-acg | 403687 | VPC 생성 때 자동 생성. 서버에 붙이지 않는다 | 자동 | 유지 |
+| ACG | yhm-acg-lb | 403689 | 아래 7.2 | 서준호 | 생성됨 |
+| ACG | yhm-acg-web | 403690 | 아래 7.2 | 서준호 | 생성됨 |
+| ACG | yhm-acg-app | 403691 | 아래 7.2 | 서준호 | 생성됨 |
+| ACG | yhm-acg-db | 403692 | 아래 7.2 | 서준호 | 생성됨 |
+| Object Storage 버킷 | traveltalk-photos-dev | - | 비공개, 잠금·암호화 끔, CORS `http://localhost:5173`(PUT/GET/HEAD) | 서준호 | 서명 URL 시험 통과 |
+
+아직 만들지 않은 것(과금 리소스): Server, Cloud DB for MySQL, NAT Gateway, Load Balancer, 인증서·도메인. 로그인 키(.pem)는 서버 생성 단계에서 같이 만든다.
+
+서버 생성은 B~E 기능이 어느 정도 합쳐지는 시점(시험 배포, 10/9~10/10쯤 제안)에 한다.
+
+### 7.2 ACG 규칙 (인바운드만 설정, 아웃바운드는 기본값 유지)
+
+| ACG | 프로토콜 | 접근 소스 | 포트 | 메모 | 확인 |
+| --- | --- | --- | --- | --- | --- |
+| yhm-acg-lb | TCP | 0.0.0.0/0 | 80 | HTTP | 화면 확인 |
+| yhm-acg-lb | TCP | 0.0.0.0/0 | 443 | HTTPS | 화면 확인 |
+| yhm-acg-web | TCP | 10.0.0.0/24 (LB 서브넷) | 80 | LB 서브넷 | 화면 확인 |
+| yhm-acg-web | TCP | **설정자 본인 공인 IP/32** | 22 | SSH | 화면 확인 |
+| yhm-acg-app | TCP | yhm-acg-web (또는 10.0.10.0/24) | 8080 | Nginx | 적용 여부 재확인 |
+| yhm-acg-app | TCP | **설정자 본인 공인 IP/32** | 22 | SSH | 적용 여부 재확인 |
+| yhm-acg-db | TCP | yhm-acg-app (또는 10.0.20.0/24) | 3306 | WAS | 적용 여부 재확인 |
+
+- **SSH(22) 규칙은 팀 공용이 아니다.** 설정자 PC의 IP에서만 접속된다. 접속해야 하는 팀원은 `myIp` 버튼으로 본인 IP를 확인해 **해당 ACG(web, app)의 Inbound에 22번 규칙을 한 줄 추가**하고 메모에 이름을 적는다. 배포가 끝나면 쓰지 않는 규칙은 삭제한다.
+- **서버에 공인 IP를 붙이기 전에** 22번 규칙이 `0.0.0.0/0`이 아닌지 확인한다(현재는 `0.0.0.0/0`이 아니다).
+- 3306(DB), 8080(WAS), 80(Nginx)은 어떤 경우에도 `0.0.0.0/0`으로 열지 않는다.
+- "적용 여부 재확인"은 ACG 목록 화면만으로는 규칙 내용을 볼 수 없어서 붙인 표시다. 만든 사람이 각 ACG 설정 창을 열어 규칙이 저장돼 있는지 확인하고 이 칸을 "화면 확인"으로 바꾼다.
+
+### 7.3 다음 순서
+
+1. (배포 직전) Server 생성 시 위 ACG와 서브넷을 선택하고, 같은 마법사에서 로그인 키(.pem) 신규 생성·보관 → 3. Cloud DB → 4. NAT Gateway(Private 라우트 연결) → 5. Load Balancer·인증서·도메인.
 
 ---
 

@@ -137,7 +137,7 @@ footer { margin-top: 44px; color: var(--muted); font-size: 12.5px; }
   </header>
 
   <nav class="chips" aria-label="섹션 이동">
-    <a href="#order">순서</a><a href="#s0">0 계정</a><a href="#s1">1 개발 최소</a><a href="#s2">2 AI 키</a><a href="#s3">3 인프라</a><a href="#s4">4 서버 설정</a><a href="#s5">5 비용·보안</a><a href="#note">팀 노트 정리법</a>
+    <a href="#order">순서</a><a href="#s0">0 계정</a><a href="#s1">1 개발 최소</a><a href="#s2">2 AI 키</a><a href="#s3">3 인프라</a><a href="#s4">4 서버 설정</a><a href="#s5">5 비용·보안</a><a href="#status">구축 현황</a><a href="#note">팀 노트 정리법</a>
   </nav>
 
   <section id="order">
@@ -239,11 +239,11 @@ S3_PATH_STYLE=true   # NCP가 가상호스트 방식만 받으면 false</pre>
     <div class="tbl"><table>
       <thead><tr><th>서브넷</th><th>예시 대역</th><th>종류</th><th>쓰임</th></tr></thead>
       <tbody>
-        <tr><td>yhm-sbn-lb</td><td class="num">10.0.0.0/24</td><td>Public (Load Balancer 용도) <span class="chk">확인 필요</span></td><td>로드밸런서</td></tr>
-        <tr><td>yhm-sbn-nat</td><td class="num">10.0.1.0/24</td><td>Public (NAT 용도) <span class="chk">확인 필요</span></td><td>NAT Gateway</td></tr>
-        <tr><td>yhm-sbn-web</td><td class="num">10.0.10.0/24</td><td>Private</td><td>Nginx 서버</td></tr>
-        <tr><td>yhm-sbn-app</td><td class="num">10.0.20.0/24</td><td>Private</td><td>WAS 서버</td></tr>
-        <tr><td>yhm-sbn-db</td><td class="num">10.0.30.0/24</td><td>Private</td><td>Cloud DB for MySQL</td></tr>
+        <tr><td>yhm-sub-lb</td><td class="num">10.0.0.0/24</td><td>Public (Load Balancer 용도) <span class="chk">확인 필요</span></td><td>로드밸런서</td></tr>
+        <tr><td>yhm-sub-nat</td><td class="num">10.0.1.0/24</td><td>Public (NAT 용도) <span class="chk">확인 필요</span></td><td>NAT Gateway</td></tr>
+        <tr><td>yhm-sub-web</td><td class="num">10.0.10.0/24</td><td>Private</td><td>Nginx 서버</td></tr>
+        <tr><td>yhm-sub-app</td><td class="num">10.0.20.0/24</td><td>Private</td><td>WAS 서버</td></tr>
+        <tr><td>yhm-sub-db</td><td class="num">10.0.30.0/24</td><td>Private</td><td>Cloud DB for MySQL</td></tr>
       </tbody>
     </table></div>
 
@@ -265,7 +265,7 @@ S3_PATH_STYLE=true   # NCP가 가상호스트 방식만 받으면 false</pre>
     <h3>3-3. 서버 · DB · NAT · 로드밸런서</h3>
     <ul class="list">
       <li><label class="item"><input type="checkbox"><span class="txt"><span class="who">E</span>서버 2대 생성(Web·App): Ubuntu 22.04, 작은 사양, Private 서브넷 <span class="chk">확인 필요</span></span></label></li>
-      <li><label class="item"><input type="checkbox"><span class="txt"><span class="who">E</span>로그인 키(.pem) 발급·안전하게 보관 <span class="sub">깃·노트에 올리지 않아요</span></span></label></li>
+      <li><label class="item"><input type="checkbox"><span class="txt"><span class="who">E</span>로그인 키(.pem)는 서버 생성 마법사의 "인증키 설정" 단계에서 신규 생성 <span class="chk">확인 필요</span><span class="sub">별도 메뉴가 없어요. .pem은 한 번만 내려받아져요: ~/.ssh/로 옮기고 chmod 400, 비밀번호 관리 도구에도 보관. 깃·노트에는 올리지 않아요</span></span></label></li>
       <li><label class="item"><input type="checkbox"><span class="txt"><span class="who">E</span>접속 경로 정하기: 임시 공인 IP 또는 점프 서버 <span class="chk">확인 필요</span><span class="sub">시연 후 공인 IP는 반납해요</span></span></label></li>
       <li><label class="item"><input type="checkbox"><span class="txt"><span class="who">A</span>Cloud DB for MySQL 생성: 8.0, Private 서브넷, utf8mb4, DB명 <code>yeohaengmal</code>, 사용자 <code>yhm</code></span></label></li>
       <li><label class="item"><input type="checkbox"><span class="txt"><span class="who">A</span>DB ACG에서 3306을 WAS에서만 허용, 고가용성(HA)은 시연 단계에서 끄기 <span class="chk">확인 필요</span></span></label></li>
@@ -343,6 +343,50 @@ S3_PATH_STYLE=true   # NCP가 가상호스트 방식만 받으면 false</pre>
       <li><label class="item"><input type="checkbox"><span class="txt">프로젝트가 끝나면 리소스 전부 삭제 (버킷 안 파일 포함)</span></label></li>
       <li><label class="item"><input type="checkbox"><span class="txt">키 유출 시: 해당 인증키를 즉시 삭제·재발급하고 팀에 공지</span></label></li>
       <li><label class="item"><input type="checkbox"><span class="txt"><code>.env</code>, <code>*.pem</code>, 비밀번호는 깃에 올리지 않기 <span class="sub">백엔드 .gitignore에 이미 포함돼 있어요</span></span></label></li>
+    </ul>
+  </section>
+
+  <section id="status">
+    <h2>구축 현황 <small>2026-10-06 기준 · 만든 사람이 계속 갱신</small></h2>
+    <div class="callout"><b>SSH(22) 규칙은 팀 공용이 아니에요.</b> 설정자(서준호) PC의 공인 IP 한 개(/32)만 허용하도록 만들었어요. 서버에 접속해야 하는 팀원은 <code>myIp</code> 버튼으로 본인 IP를 확인해서 <b>yhm-acg-web, yhm-acg-app의 Inbound에 22번 규칙을 한 줄 추가</b>하고 메모에 이름을 적어 주세요. 배포가 끝나면 쓰지 않는 규칙은 삭제해요. IP 숫자는 이 페이지에 적지 않았어요.</div>
+
+    <h3>만든 것</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>리소스</th><th>이름</th><th>ID</th><th>설정</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td>VPC</td><td>yhm-dev-vpc</td><td>-</td><td>10.0.0.0/16</td><td>운영중</td></tr>
+        <tr><td>Subnet</td><td>yhm-sub-lb</td><td class="num">328400</td><td>10.0.0.0/24 · KR-1 · Public · LoadBalancer</td><td>운영중</td></tr>
+        <tr><td>Subnet</td><td>yhm-sub-nat</td><td class="num">328401</td><td>10.0.1.0/24 · KR-1 · Public · NatGateway</td><td>운영중</td></tr>
+        <tr><td>Subnet</td><td>yhm-sub-web</td><td class="num">328402</td><td>10.0.10.0/24 · KR-1 · Private · 일반</td><td>운영중</td></tr>
+        <tr><td>Subnet</td><td>yhm-sub-app</td><td class="num">328403</td><td>10.0.20.0/24 · KR-1 · Private · 일반</td><td>운영중</td></tr>
+        <tr><td>Subnet</td><td>yhm-sub-db</td><td class="num">328404</td><td>10.0.30.0/24 · KR-1 · Private · 일반</td><td>운영중</td></tr>
+        <tr><td>ACG(기본)</td><td>yhm-dev-vpc-default-acg</td><td class="num">403687</td><td>자동 생성. 서버에 붙이지 않아요</td><td>유지</td></tr>
+        <tr><td>ACG</td><td>yhm-acg-lb</td><td class="num">403689</td><td>아래 규칙 표</td><td>생성됨</td></tr>
+        <tr><td>ACG</td><td>yhm-acg-web</td><td class="num">403690</td><td>아래 규칙 표</td><td>생성됨</td></tr>
+        <tr><td>ACG</td><td>yhm-acg-app</td><td class="num">403691</td><td>아래 규칙 표</td><td>생성됨</td></tr>
+        <tr><td>ACG</td><td>yhm-acg-db</td><td class="num">403692</td><td>아래 규칙 표</td><td>생성됨</td></tr>
+        <tr><td>버킷</td><td>traveltalk-photos-dev</td><td>-</td><td>비공개 · 잠금·암호화 끔 · CORS localhost:5173(PUT/GET/HEAD)</td><td>서명 URL 시험 통과</td></tr>
+      </tbody>
+    </table></div>
+    <p class="sec-note">아직 만들지 않은 것(과금 리소스): Server, Cloud DB for MySQL, NAT Gateway, Load Balancer, 인증서·도메인. 로그인 키(.pem)는 서버 생성 단계에서 같이 만들어요. 서버 생성은 B~E 기능이 합쳐지는 시점(시험 배포, 10/9~10/10쯤 제안)에 해요</p>
+
+    <h3>ACG 규칙 (인바운드만 설정, 아웃바운드는 기본값 유지)</h3>
+    <div class="tbl"><table>
+      <thead><tr><th>ACG</th><th>프로토콜</th><th>접근 소스</th><th>포트</th><th>메모</th><th>확인</th></tr></thead>
+      <tbody>
+        <tr><td>yhm-acg-lb</td><td>TCP</td><td>0.0.0.0/0</td><td class="num">80</td><td>HTTP</td><td>화면 확인</td></tr>
+        <tr><td>yhm-acg-lb</td><td>TCP</td><td>0.0.0.0/0</td><td class="num">443</td><td>HTTPS</td><td>화면 확인</td></tr>
+        <tr><td>yhm-acg-web</td><td>TCP</td><td>10.0.0.0/24 (LB 서브넷)</td><td class="num">80</td><td>LB 서브넷</td><td>화면 확인</td></tr>
+        <tr><td>yhm-acg-web</td><td>TCP</td><td><b>설정자 본인 공인 IP/32</b></td><td class="num">22</td><td>SSH</td><td>화면 확인</td></tr>
+        <tr><td>yhm-acg-app</td><td>TCP</td><td>yhm-acg-web (또는 10.0.10.0/24)</td><td class="num">8080</td><td>Nginx</td><td><span class="chk">적용 여부 재확인</span></td></tr>
+        <tr><td>yhm-acg-app</td><td>TCP</td><td><b>설정자 본인 공인 IP/32</b></td><td class="num">22</td><td>SSH</td><td><span class="chk">적용 여부 재확인</span></td></tr>
+        <tr><td>yhm-acg-db</td><td>TCP</td><td>yhm-acg-app (또는 10.0.20.0/24)</td><td class="num">3306</td><td>WAS</td><td><span class="chk">적용 여부 재확인</span></td></tr>
+      </tbody>
+    </table></div>
+    <ul class="list">
+      <li><label class="item"><input type="checkbox"><span class="txt">yhm-acg-app, yhm-acg-db 규칙이 저장돼 있는지 설정 창을 열어 확인 <span class="sub">ACG 목록 화면에는 규칙 내용이 안 보여요</span></span></label></li>
+      <li><label class="item"><input type="checkbox"><span class="txt">서버에 공인 IP를 붙이기 전: 22번 규칙이 0.0.0.0/0이 아닌지 확인 <span class="sub">3306·8080·80은 어떤 경우에도 0.0.0.0/0으로 열지 않아요</span></span></label></li>
+      <li><label class="item"><input type="checkbox"><span class="txt">접속이 필요한 팀원은 본인 IP로 22번 규칙 추가(메모에 이름), 끝나면 삭제</span></label></li>
     </ul>
   </section>
 
