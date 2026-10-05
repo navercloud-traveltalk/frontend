@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { StatusBar } from './StatusBar'
 import { Icon } from './Icon'
 import s from './Screen.module.css'
 
@@ -7,7 +6,6 @@ import s from './Screen.module.css'
 export function Screen({ children, tone = 'light' }: { children: ReactNode; tone?: 'light' | 'dark' }) {
   return (
     <div className={[s.screen, tone === 'dark' && s.dark].filter(Boolean).join(' ')}>
-      <StatusBar tone={tone} />
       {children}
     </div>
   )

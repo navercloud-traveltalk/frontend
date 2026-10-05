@@ -16,7 +16,6 @@ npm run build
 |---|---|
 | `VITE_USE_MOCK` | `true` 면 `src/api/mock.ts` 의 가짜 응답(0.5~2초 지연). `false` 면 실제 서버 |
 | `VITE_API_BASE_URL` | 실제 서버 주소 |
-| `VITE_FAKE_STATUS_BAR` | Figma 의 가짜 iOS 상태 막대(9:41). 실기기 시연은 `false` |
 
 ## 백엔드 담당에게
 

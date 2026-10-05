@@ -1,4 +1,4 @@
-.screen { position: relative; display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: var(--paper); }
+.screen { position: relative; padding-top: env(safe-area-inset-top); display: flex; flex-direction: column; height: 100dvh; overflow: hidden; background: var(--paper); }
 .dark { background: var(--navy); }
 .header { display: flex; flex: none; align-items: center; gap: 12px; width: 100%; padding: 12px 20px; overflow: hidden; }
 .back { display: flex; color: var(--ink); }
