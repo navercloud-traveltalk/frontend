@@ -22,7 +22,7 @@ npm run build
 API 모양은 [`src/api/types.ts`](src/api/types.ts), 호출 함수는 [`src/api/index.ts`](src/api/index.ts) 에 모여 있다.
 명세에 없던 것을 화면 때문에 추가했다:
 `GET /trips/:id`(머리글·마지막 날 판단), `GET /trips/:id/days/:day/chapter` 응답 모양, 인터뷰 `answer` 의 `skip=true`·`moments`,
-`PATCH /books/:id/cover`, `DELETE /users/me`.
+`DELETE /users/me`.
 
 ## 시연 · 점검용 주소 스위치 (mock 전용)
 

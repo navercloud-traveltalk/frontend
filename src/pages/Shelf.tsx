@@ -14,9 +14,9 @@ function Book({ b, onOpen }: { b: BookSummary; onOpen: () => void }) {
   return (
     <button type="button" className={s.bookBtn} onClick={onOpen} aria-label={b.title}>
       {b.shelfStyle === 'cover' ? (
-        <BookCover type={b.coverType} color={b.coverColor} title={b.title} subtitle={sub} photoUrl={b.coverPhotoUrl} width={92} height={132} titleSize={12} />
+        <BookCover type="photo" title={b.title} subtitle={sub} photoUrl={b.coverPhotoUrl} width={92} height={132} titleSize={12} />
       ) : (
-        <BookCover type={b.coverType} color={b.coverColor} title={b.title} subtitle={sub} photoUrl={b.coverPhotoUrl} width={76} height={104} titleSize={12} />
+        <BookCover type="photo" title={b.title} subtitle={sub} photoUrl={b.coverPhotoUrl} width={76} height={104} titleSize={12} />
       )}
     </button>
   )

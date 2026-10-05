@@ -1,5 +1,5 @@
-import { mockCreateTrip, mockCreateUser, mockGetBookshelf, mockDeleteMyData, mockFinishTrip, mockGetChapterContent, mockRestyle, mockUpdateCover, mockGetBook, mockGetChapter, mockGetTrip, mockInterviewAnswer, mockInterviewStart, mockJobStatus, mockPutPhoto, mockScenes, mockStartJob, mockUploadUrls } from './mock'
-import type { Book, BookshelfResponse, ChapterContent, StyleName, UpdateCoverRequest, ChapterDraft, FinishTripResponse, CreateTripRequest, CreateTripResponse, CreateUserResponse, InterviewAnswerResponse, InterviewStartResponse, JobResponse, JobStatusResponse, ScenesResponse, TripInfo, UploadUrlsResponse } from './types'
+import { mockCreateTrip, mockCreateUser, mockGetBookshelf, mockDeleteMyData, mockFinishTrip, mockGetChapterContent, mockRestyle, mockGetBook, mockGetChapter, mockGetTrip, mockInterviewAnswer, mockInterviewStart, mockJobStatus, mockPutPhoto, mockScenes, mockStartJob, mockUploadUrls } from './mock'
+import type { Book, BookshelfResponse, ChapterContent, StyleName, ChapterDraft, FinishTripResponse, CreateTripRequest, CreateTripResponse, CreateUserResponse, InterviewAnswerResponse, InterviewStartResponse, JobResponse, JobStatusResponse, ScenesResponse, TripInfo, UploadUrlsResponse } from './types'
 import { getSession } from '../lib/session'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
@@ -95,9 +95,6 @@ export const api = {
 
   restyle: (bookId: string, style: StyleName): Promise<JobResponse> =>
     USE_MOCK ? mockRestyle(style) : request(`/books/${bookId}/restyle`, { method: 'POST', body: JSON.stringify({ style }) }),
-
-  updateCover: (bookId: string, body: UpdateCoverRequest): Promise<void> =>
-    USE_MOCK ? mockUpdateCover(bookId, body) : request(`/books/${bookId}/cover`, { method: 'PATCH', body: JSON.stringify(body) }),
 
   /** 내 데이터 삭제 */
   deleteMyData: (): Promise<void> => (USE_MOCK ? mockDeleteMyData() : request('/users/me', { method: 'DELETE' })),

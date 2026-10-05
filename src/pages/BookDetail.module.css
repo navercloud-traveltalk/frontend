@@ -13,7 +13,7 @@
 .no { font-size: 13px; color: var(--red); }
 .itemTitle { font-size: 15px; color: var(--ink); }
 .actions { display: flex; flex: none; flex-direction: column; gap: 8px; width: 100%; padding: 0 20px 20px; }
-.tools { display: flex; align-items: flex-start; justify-content: space-between; width: 100%; }
+.tools { display: flex; align-items: flex-start; justify-content: space-around; width: 100%; }
 .tools button { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 104px; }
 .tools span { font-size: 10px; line-height: normal; color: var(--ink-soft); white-space: nowrap; }
 .pdfText { font-size: 15px; line-height: 1.6; color: var(--ink-soft); }

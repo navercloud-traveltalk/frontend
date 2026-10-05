@@ -49,7 +49,7 @@ export default function Complete() {
           <h1 className={s.title}>{b.title}</h1>
           <p className={s.meta}>{b.place} · {b.dateRange} · {b.stats.chapters}개의 챕터</p>
         </div>
-        <BookCover type={b.coverType} color={b.coverColor} title={b.title} subtitle={`${b.place} · ${b.dateRange}`} photoUrl={b.coverPhotoUrl} width={204} height={286} />
+        <BookCover type="photo" title={b.title} subtitle={`${b.place} · ${b.dateRange}`} photoUrl={b.coverPhotoUrl} width={204} height={286} />
         <div className={s.actions}>
           <Button onClick={toShelf}>책장에 꽂기</Button>
           <Button variant="outline" onClick={() => nav(`/books/${id}/read`)}>지금 읽기</Button>

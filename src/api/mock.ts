@@ -7,11 +7,11 @@ export const delay = () => sleep(500 + Math.random() * 1500)
 const COVER_PHOTO = '/img/cover-jeju.png'
 
 const SEED_BOOKS: BookSummary[] = [
-  { id: 'b1', title: '바람이 머문 제주', place: '제주', dateLabel: '2026.09', days: 4, coverType: 'photo', coverColor: 'red', coverPhotoUrl: COVER_PHOTO, shelfStyle: 'cover' },
-  { id: 'b2', title: '바람이 지나간 자리', place: '제주', dateLabel: '2026', days: 4, spineWidth: 34, coverType: 'cloth', coverColor: 'teal', shelfStyle: 'spine' },
-  { id: 'b3', title: '첫눈 오던 골목', place: '강릉', dateLabel: '2025', days: 3, spineWidth: 30, coverType: 'type', coverColor: 'slate', shelfStyle: 'spine' },
-  { id: 'b4', title: '바람이 지나간 자리', place: '제주', dateLabel: '2026.03', days: 3, coverType: 'cloth', coverColor: 'teal', coverPhotoUrl: '/img/round-jeju.png', shelfStyle: 'mini' },
-  { id: 'b5', title: '첫눈 오던 골목', place: '강릉', dateLabel: '2025.12', days: 3, coverType: 'type', coverColor: 'slate', shelfStyle: 'mini' },
+  { id: 'b1', title: '바람이 머문 제주', place: '제주', dateLabel: '2026.09', days: 4, coverColor: 'red', coverPhotoUrl: COVER_PHOTO, shelfStyle: 'cover' },
+  { id: 'b2', title: '바람이 지나간 자리', place: '제주', dateLabel: '2026', days: 4, spineWidth: 34, coverColor: 'teal', coverPhotoUrl: '/img/photo-4.png', shelfStyle: 'spine' },
+  { id: 'b3', title: '첫눈 오던 골목', place: '강릉', dateLabel: '2025', days: 3, spineWidth: 30, coverColor: 'slate', coverPhotoUrl: '/img/photo-1.png', shelfStyle: 'spine' },
+  { id: 'b4', title: '바람이 지나간 자리', place: '제주', dateLabel: '2026.03', days: 3, coverColor: 'teal', coverPhotoUrl: '/img/photo-4.png', shelfStyle: 'mini' },
+  { id: 'b5', title: '첫눈 오던 골목', place: '강릉', dateLabel: '2025.12', days: 3, coverColor: 'slate', coverPhotoUrl: '/img/photo-1.png', shelfStyle: 'mini' },
 ]
 
 export type Scenario = 'empty' | 'writing' | 'todayDone' | 'binding'
@@ -240,7 +240,7 @@ export async function mockGetChapter(): Promise<ChapterDraft> {
 
 /** 책 엮기가 끝나면: 새 책을 맨 앞에 꽂고 진행 중 여행을 닫는다 */
 function finalizeBinding(db: MockDb): MockDb {
-  const book: BookSummary = { id: 'b_new', title: '비 오는 날의 손님', place: '전주', dateLabel: '2026.07', days: 3, coverType: 'photo', coverColor: 'red', coverPhotoUrl: '/img/cover-main.png', shelfStyle: 'cover' }
+  const book: BookSummary = { id: 'b_new', title: '비 오는 날의 손님', place: '전주', dateLabel: '2026.07', days: 3, coverColor: 'red', coverPhotoUrl: '/img/cover-main.png', shelfStyle: 'cover' }
   const rest = db.books.filter((b) => b.id !== 'b_new').map((b, i) => (i === 0 && b.shelfStyle === 'cover' ? { ...b, shelfStyle: 'spine' as const, spineWidth: 34 } : b))
   const next: MockDb = { ...db, trip: null, books: [book, ...rest] }
   save(next)
@@ -273,9 +273,7 @@ export async function mockGetBook(id: string): Promise<Book> {
     title: isNew ? '비 오는 날의 손님' : seeded.title,
     place: isNew ? '전주' : seeded.place,
     dateRange: '2026.07.13–07.15',
-    coverType: coverOverride.get(id)?.coverType ?? found?.coverType ?? 'photo',
-    coverColor: coverOverride.get(id)?.coverColor ?? found?.coverColor ?? 'red',
-    coverPhotoUrl: found?.coverType === 'cloth' && !coverOverride.get(id) ? found.coverPhotoUrl : COVER_PHOTO_MAIN,
+    coverPhotoUrl: found?.coverPhotoUrl ?? COVER_PHOTO_MAIN,
     stats: { days: 3, chapters: 3, photos: 118, voiceMinutes: 14 },
     chapters: CHAPTERS,
   }
@@ -283,7 +281,7 @@ export async function mockGetBook(id: string): Promise<Book> {
 const COVER_PHOTO_MAIN = '/img/cover-main.png'
 
 // ── 리더 · 문체 · 표지 · 데이터 삭제 ──────────────────
-import type { ChapterContent, Evidence, StyleName, UpdateCoverRequest } from './types'
+import type { ChapterContent, Evidence, StyleName } from './types'
 
 const VOICE = 'mock://voice'
 const FIRST: Record<StyleName, string> = {
@@ -316,14 +314,6 @@ export async function mockRestyle(style: StyleName): Promise<{ jobId: string }> 
   currentStyle = style
   return r
 }
-
-export async function mockUpdateCover(bookId: string, body: UpdateCoverRequest): Promise<void> {
-  await delay()
-  const db = load()
-  save({ ...db, books: db.books.map((b) => (b.id === bookId ? { ...b, coverType: body.coverType, coverColor: body.coverColor } : b)) })
-  coverOverride.set(bookId, body)
-}
-const coverOverride = new Map<string, UpdateCoverRequest>()
 
 export async function mockDeleteMyData(): Promise<void> {
   await delay()

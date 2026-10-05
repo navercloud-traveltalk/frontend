@@ -11,7 +11,6 @@ export interface CreateUserRequest { nickname: string }
 export interface CreateUserResponse { userId: string; nickname: string }
 
 // ── 책장 ──────────────────────────────────────────────
-export type CoverType = 'photo' | 'frame' | 'cloth' | 'type'
 export type CoverColor = 'red' | 'teal' | 'navy' | 'slate'
 
 /** 선반 위에서 어떻게 꽂을지: 표지가 보이게(cover) / 책등만(spine) / 작은 표지(mini) */
@@ -27,7 +26,7 @@ export interface BookSummary {
   days: number
   /** 서버가 계산한 책등 두께(px). 없으면 days 로 계산 (1–2일 24 / 3–5일 34 / 6일+ 46) */
   spineWidth?: number
-  coverType: CoverType
+  /** 책등 색 (표지는 사진 배경 + 제목으로 고정) */
   coverColor: CoverColor
   coverPhotoUrl?: string
   shelfStyle: ShelfStyle
@@ -161,8 +160,7 @@ export interface Book {
   place: string
   /** “2026.07.13–07.15” */
   dateRange: string
-  coverType: CoverType
-  coverColor: CoverColor
+  /** 표지는 사진 배경 위에 제목을 얹은 고정 형식 */
   coverPhotoUrl?: string
   stats: { days: number; chapters: number; photos: number; voiceMinutes: number }
   chapters: BookChapterItem[]
@@ -207,6 +205,3 @@ export interface ChapterContent {
 
 /** POST /books/:id/restyle {style} → JobResponse */
 export interface RestyleRequest { style: StyleName }
-
-/** PATCH /books/:id/cover */
-export interface UpdateCoverRequest { coverType: CoverType; coverColor: CoverColor }

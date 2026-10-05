@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
-import { BookCover, Button, CoverSheet, Icon, RestyleSheet, Screen, Toast } from '../components'
+import { BookCover, Button, Icon, RestyleSheet, Screen, Toast } from '../components'
 import { BottomSheet } from '../components/BottomSheet'
 import s from './BookDetail.module.css'
 
@@ -10,9 +10,8 @@ import s from './BookDetail.module.css'
 export default function BookDetail() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const qc = useQueryClient()
   const q = useQuery({ queryKey: ['book', id], queryFn: () => api.getBook(id) })
-  const [sheet, setSheet] = useState<null | 'style' | 'pdf' | 'cover'>(null)
+  const [sheet, setSheet] = useState<null | 'style' | 'pdf'>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [pdfBusy, setPdfBusy] = useState(false)
   const say = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 2200) }
@@ -40,7 +39,7 @@ export default function BookDetail() {
         <>
           <div className={s.content}>
             <div className={s.cover}>
-              <BookCover type={b.coverType} color={b.coverColor} title={b.title} subtitle={`${b.place} · ${b.dateRange.slice(0, 7)}`} photoUrl={b.coverPhotoUrl} width={156} height={220} />
+              <BookCover type="photo" title={b.title} subtitle={`${b.place} · ${b.dateRange.slice(0, 7)}`} photoUrl={b.coverPhotoUrl} width={156} height={220} />
             </div>
             <div className={s.meta}>
               {[`${b.stats.days}일`, `챕터 ${b.stats.chapters}개`, `사진 ${b.stats.photos}장`, `목소리 ${b.stats.voiceMinutes}분`].map((t) => (
@@ -62,11 +61,9 @@ export default function BookDetail() {
             <div className={s.tools}>
               <button type="button" onClick={() => setSheet('style')}><Icon name="pen-line" size={20} style={{ color: 'var(--teal)' }} /><span>문체 바꾸기</span></button>
               <button type="button" onClick={() => setSheet('pdf')}><Icon name="file-down" size={20} style={{ color: 'var(--teal)' }} /><span>PDF로 내보내기</span></button>
-              <button type="button" onClick={() => setSheet('cover')}><Icon name="book-image" size={20} style={{ color: 'var(--teal)' }} /><span>표지 바꾸기</span></button>
             </div>
           </div>
           <RestyleSheet open={sheet === 'style'} bookId={id} onClose={() => setSheet(null)} onDone={() => { setSheet(null); say('문체를 바꿨어요') }} />
-          <CoverSheet open={sheet === 'cover'} book={b} onClose={() => setSheet(null)} onDone={() => { setSheet(null); qc.invalidateQueries({ queryKey: ['book', id] }); qc.invalidateQueries({ queryKey: ['bookshelf'] }); say('표지를 바꿨어요') }} />
           <BottomSheet open={sheet === 'pdf'} onClose={() => !pdfBusy && setSheet(null)} title="PDF로 내보내기">
             <p className={s.pdfText}>사진과 이야기를 한 권의 PDF로 만들어 드려요. 1분쯤 걸려요.</p>
             <Button disabled={pdfBusy} onClick={makePdf}>{pdfBusy ? 'PDF를 만드는 중…' : 'PDF 만들기'}</Button>
