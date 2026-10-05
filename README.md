@@ -15,14 +15,14 @@ npm run build
 | 이름 | 설명 |
 |---|---|
 | `VITE_USE_MOCK` | `true` 면 `src/api/mock.ts` 의 가짜 응답(0.5~2초 지연). `false` 면 실제 서버 |
-| `VITE_API_BASE_URL` | 실제 서버 주소 |
+| `VITE_API_BASE_URL` | `/api` (Nginx가 같은 출처에서 API를 전달. 로컬 개발은 Vite 프록시가 `localhost:8080`으로 넘김) |
 
 ## 백엔드 담당에게
 
 API 모양은 [`src/api/types.ts`](src/api/types.ts), 호출 함수는 [`src/api/index.ts`](src/api/index.ts) 에 모여 있다.
 명세에 없던 것을 화면 때문에 추가했다:
 `GET /trips/:id`(머리글·마지막 날 판단), `GET /trips/:id/days/:day/chapter` 응답 모양, 인터뷰 `answer` 의 `skip=true`·`moments`,
-`DELETE /users/me`.
+`GET /users/me`·`PUT /users/me/settings`·`POST …/interview/end`, `DELETE /users/me`. 사용자는 로그인 없이 서버가 발급한 쿠키로 식별한다.
 
 ## 시연 · 점검용 주소 스위치 (mock 전용)
 
