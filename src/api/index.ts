@@ -1,34 +1,36 @@
-import { mockCreateTrip, mockCreateUser, mockGetBookshelf, mockDeleteMyData, mockFinishTrip, mockGetChapterContent, mockRestyle, mockGetBook, mockGetChapter, mockGetTrip, mockInterviewAnswer, mockInterviewStart, mockJobStatus, mockPutPhoto, mockScenes, mockStartJob, mockUploadUrls } from './mock'
-import type { Book, BookshelfResponse, ChapterContent, StyleName, ChapterDraft, FinishTripResponse, CreateTripRequest, CreateTripResponse, CreateUserResponse, InterviewAnswerResponse, InterviewStartResponse, JobResponse, JobStatusResponse, ScenesResponse, TripInfo, UploadUrlsResponse } from './types'
-import { getSession } from '../lib/session'
+import { mockCreateTrip, mockCreateUser, mockEndInterview, mockGetMe, mockUpdateSettings, mockGetBookshelf, mockDeleteMyData, mockFinishTrip, mockGetChapterContent, mockRestyle, mockGetBook, mockGetChapter, mockGetTrip, mockInterviewAnswer, mockInterviewStart, mockJobStatus, mockPutPhoto, mockScenes, mockStartJob, mockUploadUrls } from './mock'
+import type { Book, BookshelfResponse, ChapterContent, StyleCode, EndInterviewRequest, MeResponse, UpdateSettingsRequest, ChapterDraft, FinishTripResponse, CreateTripRequest, CreateTripResponse, CreateUserResponse, InterviewAnswerResponse, InterviewStartResponse, JobResponse, JobStatusResponse, ScenesResponse, TripInfo, UploadUrlsResponse } from './types'
+import { ApiError } from './error'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 const BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
-export class ApiError extends Error {
-  status?: number
-  constructor(message: string, status?: number) {
-    super(message)
-    this.status = status
-  }
-}
+export { ApiError }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const userId = getSession()?.userId
   let res: Response
   try {
+    // 로그인이 없고 서버가 준 HttpOnly 쿠키로 사용자를 구별한다 → 쿠키를 항상 함께 보낸다
     res = await fetch(`${BASE}${path}`, {
       ...init,
-      headers: { 'Content-Type': 'application/json', ...(userId ? { 'X-User-Id': userId } : {}), ...init.headers },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...init.headers },
     })
   } catch {
     throw new ApiError('네트워크에 연결할 수 없어요')
   }
   if (!res.ok) throw new ApiError('서버에서 응답을 받지 못했어요', res.status)
+  if (res.status === 204) return undefined as T
   return (await res.json()) as T
 }
 
 export const api = {
+  /** 쿠키가 유효하면 사용자 정보, 없으면 401 */
+  getMe: (): Promise<MeResponse> => (USE_MOCK ? mockGetMe() : request('/users/me')),
+
+  updateSettings: (body: UpdateSettingsRequest): Promise<MeResponse> =>
+    USE_MOCK ? mockUpdateSettings(body) : request('/users/me/settings', { method: 'PUT', body: JSON.stringify(body) }),
+
   createUser: (nickname: string): Promise<CreateUserResponse> =>
     USE_MOCK ? mockCreateUser(nickname) : request('/users', { method: 'POST', body: JSON.stringify({ nickname }) }),
 
@@ -66,10 +68,9 @@ export const api = {
     const form = new FormData()
     if (audio) form.append('audio', audio, `answer.${audio.type.includes('mp4') ? 'm4a' : 'webm'}`)
     else form.append('skip', 'true')
-    const userId = getSession()?.userId
     let res: Response
     try {
-      res = await fetch(`${BASE}/trips/${tripId}/days/${day}/interview/answer`, { method: 'POST', body: form, headers: userId ? { 'X-User-Id': userId } : {} })
+      res = await fetch(`${BASE}/trips/${tripId}/days/${day}/interview/answer`, { method: 'POST', body: form, credentials: 'include' })
     } catch {
       throw new ApiError('네트워크에 연결할 수 없어요')
     }
@@ -93,9 +94,13 @@ export const api = {
   getBookChapter: (bookId: string, n: number): Promise<ChapterContent> =>
     USE_MOCK ? mockGetChapterContent(bookId, n) : request(`/books/${bookId}/chapters/${n}`),
 
-  restyle: (bookId: string, style: StyleName): Promise<JobResponse> =>
+  restyle: (bookId: string, style: StyleCode): Promise<JobResponse> =>
     USE_MOCK ? mockRestyle(style) : request(`/books/${bookId}/restyle`, { method: 'POST', body: JSON.stringify({ style }) }),
 
   /** 내 데이터 삭제 */
   deleteMyData: (): Promise<void> => (USE_MOCK ? mockDeleteMyData() : request('/users/me', { method: 'DELETE' })),
+
+  /** 인터뷰를 끝낸다: SAVE_EXIT(지금까지 저장) / DISCARD(저장 안 함, 이번 인터뷰 음성·전사 삭제) */
+  endInterview: (tripId: string, day: number, type: EndInterviewRequest['type']): Promise<void> =>
+    USE_MOCK ? mockEndInterview() : request(`/trips/${tripId}/days/${day}/interview/end`, { method: 'POST', body: JSON.stringify({ type }) }),
 }

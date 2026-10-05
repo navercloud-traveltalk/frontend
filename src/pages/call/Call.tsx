@@ -45,7 +45,7 @@ export default function Call() {
   const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
   const day = trip.data?.day ?? 1
   const scenes = useQuery({ queryKey: ['scenes', id, day], queryFn: () => api.getScenes(id, day), enabled: !!trip.data })
-  const { state: c, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, mock } = useInterview(id, day)
+  const { state: c, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, discard, mock } = useInterview(id, day)
   const caption = useCaption(c.phase === 'listening', c.question?.index ?? 0, mock)
 
   if (c.phase === 'incoming') return <Incoming c={c} accept={accept} mock={mock} photoCount={42} onLater={() => nav('/')} />
@@ -117,7 +117,7 @@ export default function Call() {
               <div className={s.sheetActions}>
                 <button type="button" className={s.sheetPrimary} onClick={saveAndEnd}>여기까지 저장하고 마치기</button>
                 <button type="button" className={s.sheetOutline} onClick={closeHangup}>계속 이야기하기</button>
-                <button type="button" className={s.sheetExit} onClick={() => nav('/')}>저장하지 않고 나가기</button>
+                <button type="button" className={s.sheetExit} onClick={() => { discard(); nav('/') }}>저장하지 않고 나가기</button>
               </div>
             </div>
           </div>

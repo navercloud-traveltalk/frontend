@@ -6,7 +6,7 @@ export type CallPhase = 'incoming' | 'aiSpeaking' | 'listening' | 'thinking' | '
 export interface CallState {
   phase: CallPhase
   question: Question | null
-  /** 답변을 보낸 질문 수 */
+  /** 답한 질문 수 (건너뛴 질문·빈 답변은 세지 않는다) */
   answered: number
   elapsed: number
   starting: boolean
@@ -35,6 +35,7 @@ export type CallAction =
   | { type: 'HEARD' }
   | { type: 'THINKING' }
   | { type: 'ANSWERED' }
+  | { type: 'SET_ANSWERED'; count: number }
   | { type: 'SEND_ERROR' }
   | { type: 'WRAP_UP'; moments: string[] }
   | { type: 'TICK' }
@@ -58,6 +59,8 @@ export function callReducer(s: CallState, a: CallAction): CallState {
       return { ...s, phase: 'thinking', sendError: false }
     case 'ANSWERED':
       return { ...s, answered: s.answered + 1 }
+    case 'SET_ANSWERED':
+      return { ...s, answered: a.count }
     case 'SEND_ERROR':
       return { ...s, sendError: true }
     case 'WRAP_UP':

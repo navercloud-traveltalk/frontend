@@ -6,7 +6,9 @@ import type { Companion } from '../api/types'
 import { BottomSheet, Button, Chip, Header, Icon, Screen } from '../components'
 import s from './NewTrip.module.css'
 
-const COMPANIONS: Companion[] = ['혼자', '친구', '가족', '연인']
+const COMPANIONS: { code: Companion; label: string }[] = [
+  { code: 'ALONE', label: '혼자' }, { code: 'FRIEND', label: '친구' }, { code: 'FAMILY', label: '가족' }, { code: 'LOVER', label: '연인' },
+]
 
 const dot = (iso: string) => iso.replaceAll('-', '.')
 /** 2026-07-13, 2026-07-15 → "2026.07.13–07.15" */
@@ -23,7 +25,7 @@ export default function NewTrip() {
   const [place, setPlace] = useState('전주')
   const [start, setStart] = useState('2026-07-13')
   const [end, setEnd] = useState('2026-07-15')
-  const [who, setWho] = useState<Companion>('친구')
+  const [who, setWho] = useState<Companion>('FRIEND')
   const [sheet, setSheet] = useState(false)
   const [draft, setDraft] = useState({ start, end })
 
@@ -66,7 +68,7 @@ export default function NewTrip() {
           <span className={s.label}>누구와 함께</span>
           <div className={s.chips}>
             {COMPANIONS.map((c) => (
-              <Chip key={c} selected={who === c} onClick={() => setWho(c)}>{c}</Chip>
+              <Chip key={c.code} selected={who === c.code} onClick={() => setWho(c.code)}>{c.label}</Chip>
             ))}
           </div>
         </div>

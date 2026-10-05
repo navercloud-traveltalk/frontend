@@ -3,12 +3,21 @@
  * 지금은 src/api/mock.ts 가 같은 모양의 가짜 응답을 돌려준다.
  */
 
-export type Companion = '혼자' | '친구' | '가족' | '연인'
+/** 동행 코드 (화면 표시: 혼자/친구/가족/연인) */
+export type Companion = 'ALONE' | 'FRIEND' | 'FAMILY' | 'LOVER'
 
 // ── 사용자 ────────────────────────────────────────────
-/** POST /users */
+/**
+ * 사용자는 로그인 없이 브라우저 쿠키로 식별한다(서버가 HttpOnly 쿠키 발급). 요청에 사용자 ID 헤더는 없다.
+ * POST /users → Set-Cookie + { nickname }, GET /users/me → 쿠키 확인(없으면 401).
+ */
+/** 인터뷰어 목소리 코드 (화면 표시: 차분한/밝은/담백한 목소리) */
+export type VoiceCode = 'CALM' | 'BRIGHT' | 'PLAIN'
 export interface CreateUserRequest { nickname: string }
-export interface CreateUserResponse { userId: string; nickname: string }
+export interface CreateUserResponse { nickname: string }
+/** GET /users/me · PUT /users/me/settings 응답 */
+export interface MeResponse { nickname: string; voice: VoiceCode; keepAudio: boolean }
+export interface UpdateSettingsRequest { voice: VoiceCode; keepAudio: boolean }
 
 // ── 책장 ──────────────────────────────────────────────
 export type CoverColor = 'red' | 'teal' | 'navy' | 'slate'
@@ -124,7 +133,11 @@ export interface Question {
 }
 
 /** POST /trips/:id/days/:day/interview/start */
-export interface InterviewStartResponse { question: Question }
+export interface InterviewStartResponse {
+  question: Question
+  /** 이어 하기: 이미 답한 질문 수(처음이면 0 또는 생략) */
+  answered?: number
+}
 
 /**
  * POST /trips/:id/days/:day/interview/answer  (multipart: audio=녹음 파일, 건너뛰기면 skip=true)
@@ -134,7 +147,12 @@ export interface InterviewAnswerResponse {
   transcript: string
   next: Question | null
   moments?: string[]
+  /** 건너뜀(skip 요청 또는 전사가 비어 있음) — 답한 질문 수에 세지 않는다 */
+  skipped?: boolean
 }
+
+/** POST …/interview/end — SAVE_EXIT: 지금까지 저장하고 마침(남은 질문 건너뜀), DISCARD: 저장하지 않고 나감(이번 인터뷰 음성·전사 삭제) */
+export interface EndInterviewRequest { type: 'SAVE_EXIT' | 'DISCARD' }
 
 // ── 챕터 초안 · 책 완성 ────────────────────────────────
 /** GET /trips/:id/days/:day/chapter */
@@ -167,7 +185,8 @@ export interface Book {
 }
 
 // ── 리더 ──────────────────────────────────────────────
-export type StyleName = '에세이' | '감성' | '동화'
+/** 문체 코드 (화면 표시: 에세이/감성/동화) */
+export type StyleCode = 'ESSAY' | 'EMOTIONAL' | 'FAIRYTALE'
 
 /** 문장의 근거: 사진, 내가 한 말(전사), 저장된 음성 */
 export interface Evidence {
@@ -196,12 +215,13 @@ export interface ChapterContent {
   photoCaption?: string
   paragraphs: Paragraph[]
   /** 문단 뒤에 크게 뜨는 인용 + 그때 내 목소리 */
-  pullQuote?: { text: string; audioUrl: string; seconds: number; transcript: string }
+  /** audioUrl 은 원본 음성을 보관하지 않는 설정이면 없다 */
+  pullQuote?: { text: string; audioUrl?: string; seconds: number; transcript: string }
   /** 책 전체에서 이 페이지 위치 (“24 / 61”) */
   page: number
   pages: number
-  style: StyleName
+  style: StyleCode
 }
 
 /** POST /books/:id/restyle {style} → JobResponse */
-export interface RestyleRequest { style: StyleName }
+export interface RestyleRequest { style: StyleCode }

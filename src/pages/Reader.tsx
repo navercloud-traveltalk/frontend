@@ -92,10 +92,10 @@ export default function Reader() {
             {c.pullQuote && (
               <div className={s.quote}>
                 <p className={s.quoteText}>{c.pullQuote.text}</p>
-                <button type="button" className={s.voice} onClick={() => play('quote', c.pullQuote!.audioUrl, c.pullQuote!.transcript)}>
+                {c.pullQuote.audioUrl && <button type="button" className={s.voice} onClick={() => play('quote', c.pullQuote!.audioUrl!, c.pullQuote!.transcript)}>
                   <Icon name="play" size={16} />
                   {playing === 'quote' ? '재생 중 · 누르면 멈춰요' : `그때 내 목소리 ${mmss(c.pullQuote.seconds)}`}
-                </button>
+                </button>}
               </div>
             )}
             <div className={s.progress}>

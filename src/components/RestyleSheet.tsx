@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import type { StyleName } from '../api/types'
+import type { StyleCode } from '../api/types'
 import { useJob } from '../lib/useJob'
 import { BottomSheet } from './BottomSheet'
 import { Button } from './Button'
 import s from './RestyleSheet.module.css'
 
-const STYLES: { name: StyleName; sample: string }[] = [
-  { name: '에세이', sample: '오후 두 시쯤, 비가 갑자기 쏟아졌다.' },
-  { name: '감성', sample: '비는 예고도 없이, 우리를 골목 끝으로 데려갔다.' },
-  { name: '동화', sample: '비가 톡톡 내리던 날, 두 친구는 작은 카페로 쏙 들어갔어요.' },
+const STYLES: { code: StyleCode; name: string; sample: string }[] = [
+  { code: 'ESSAY', name: '에세이', sample: '오후 두 시쯤, 비가 갑자기 쏟아졌다.' },
+  { code: 'EMOTIONAL', name: '감성', sample: '비는 예고도 없이, 우리를 골목 끝으로 데려갔다.' },
+  { code: 'FAIRYTALE', name: '동화', sample: '비가 톡톡 내리던 날, 두 친구는 작은 카페로 쏙 들어갔어요.' },
 ]
 
 /** 문체 바꾸기 바텀시트. 다시 쓰기는 서버 작업이라 진행·실패 상태를 시트 안에서 보여 준다. */
-export function RestyleSheet({ open, bookId, current = '에세이', onClose, onDone }: { open: boolean; bookId: string; current?: StyleName; onClose: () => void; onDone: (style: StyleName) => void }) {
-  const [picked, setPicked] = useState<StyleName>(current)
+export function RestyleSheet({ open, bookId, current = 'ESSAY', onClose, onDone }: { open: boolean; bookId: string; current?: StyleCode; onClose: () => void; onDone: (style: StyleCode) => void }) {
+  const [picked, setPicked] = useState<StyleCode>(current)
   const [jobId, setJobId] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -44,9 +44,9 @@ export function RestyleSheet({ open, bookId, current = '에세이', onClose, onD
   return (
     <BottomSheet open={open} onClose={() => !busy && onClose()} title="문체 바꾸기" minHeight={570}>
       <div className={s.list} role="radiogroup" aria-label="문체">
-        {STYLES.map(({ name, sample }) => (
-          <button key={name} type="button" role="radio" aria-checked={picked === name} disabled={busy} className={[s.card, picked === name && s.on].filter(Boolean).join(' ')} onClick={() => setPicked(name)}>
-            {picked === name ? <img src="/img/radio-on.svg" width={20} height={20} alt="" /> : <span className={s.radio} />}
+        {STYLES.map(({ code, name, sample }) => (
+          <button key={code} type="button" role="radio" aria-checked={picked === code} disabled={busy} className={[s.card, picked === code && s.on].filter(Boolean).join(' ')} onClick={() => setPicked(code)}>
+            {picked === code ? <img src="/img/radio-on.svg" width={20} height={20} alt="" /> : <span className={s.radio} />}
             <span className={s.text}>
               <span className={s.name}>{name}</span>
               <span className={s.sample}>{sample}</span>

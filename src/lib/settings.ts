@@ -1,21 +1,25 @@
+import type { VoiceCode } from '../api/types'
+
 const KEY = 'yhm.settings'
 
-export type Voice = '차분한 목소리' | '밝은 목소리' | '담백한 목소리'
-export const VOICES: Voice[] = ['차분한 목소리', '밝은 목소리', '담백한 목소리']
+/** 화면 표시 이름 (서버에는 코드로 저장) */
+export const VOICE_LABELS: Record<VoiceCode, string> = { CALM: '차분한 목소리', BRIGHT: '밝은 목소리', PLAIN: '담백한 목소리' }
+export const VOICE_CODES = Object.keys(VOICE_LABELS) as VoiceCode[]
 
-export interface Settings { voice: Voice; keepAudio: boolean; fontSize: 15 | 17 | 19 }
-const DEFAULTS: Settings = { voice: '차분한 목소리', keepAudio: true, fontSize: 17 }
+/** 리더 글자 크기는 이 기기에만 저장한다 */
+export interface LocalSettings { fontSize: 15 | 17 | 19 }
+const DEFAULTS: LocalSettings = { fontSize: 17 }
 
-export function getSettings(): Settings {
+export function getSettings(): LocalSettings {
   try {
     const raw = localStorage.getItem(KEY)
-    return raw ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Settings>) } : DEFAULTS
+    return raw ? { ...DEFAULTS, ...(JSON.parse(raw) as Partial<LocalSettings>) } : DEFAULTS
   } catch {
     return DEFAULTS
   }
 }
 
-export function saveSettings(patch: Partial<Settings>): Settings {
+export function saveSettings(patch: Partial<LocalSettings>): LocalSettings {
   const next = { ...getSettings(), ...patch }
   try {
     localStorage.setItem(KEY, JSON.stringify(next))

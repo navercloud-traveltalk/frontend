@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
-import { saveSession } from '../lib/session'
 import { Screen } from '../components'
 import s from './Start.module.css'
 
 export default function Start() {
   const nav = useNavigate()
+  const qc = useQueryClient()
   const [name, setName] = useState('')
   const [touched, setTouched] = useState(false)
   const trimmed = name.trim()
@@ -15,7 +15,8 @@ export default function Start() {
   const create = useMutation({
     mutationFn: () => api.createUser(trimmed),
     onSuccess: (u) => {
-      saveSession({ userId: u.userId, nickname: u.nickname })
+      // 서버가 쿠키를 발급했다. 사용자 정보를 캐시에 넣어 바로 책장으로 간다
+      qc.setQueryData(['me'], { nickname: u.nickname, voice: 'CALM', keepAudio: true })
       nav('/', { replace: true })
     },
   })
@@ -44,7 +45,7 @@ export default function Start() {
             id="nickname"
             className={[s.input, !empty && s.filled, showError && s.invalid].filter(Boolean).join(' ')}
             value={name}
-            maxLength={12}
+            maxLength={20}
             placeholder="닉네임"
             autoComplete="off"
             onChange={(e) => setName(e.target.value)}

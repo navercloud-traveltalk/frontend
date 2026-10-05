@@ -1,4 +1,5 @@
-import type { BookshelfResponse, BookSummary, CreateTripRequest, CreateTripResponse, CreateUserResponse, InProgressTrip, TripPhase } from './types'
+import { ApiError } from './error'
+import type { MeResponse, UpdateSettingsRequest, BookshelfResponse, BookSummary, CreateTripRequest, CreateTripResponse, CreateUserResponse, InProgressTrip, TripPhase } from './types'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 /** 실제처럼 0.5~2초 지연 */
@@ -53,11 +54,40 @@ function applyScenario(db: MockDb): MockDb {
   return db
 }
 
+const ME_KEY = 'yhm.mock.me'
+function loadMe(): MeResponse | null {
+  try {
+    const raw = localStorage.getItem(ME_KEY)
+    return raw ? (JSON.parse(raw) as MeResponse) : null
+  } catch {
+    return null
+  }
+}
+
 export async function mockCreateUser(nickname: string): Promise<CreateUserResponse> {
   await delay()
   const db = load()
   save({ ...db, nickname })
-  return { userId: `u_${Math.random().toString(36).slice(2, 8)}`, nickname }
+  // 실제 서버는 여기서 HttpOnly 쿠키를 발급한다
+  localStorage.setItem(ME_KEY, JSON.stringify({ nickname, voice: 'CALM', keepAudio: true } satisfies MeResponse))
+  return { nickname }
+}
+
+/** 쿠키 확인: 없으면 401 */
+export async function mockGetMe(): Promise<MeResponse> {
+  await sleep(150)
+  const me = loadMe()
+  if (!me) throw new ApiError('로그인 정보가 없어요', 401)
+  return me
+}
+
+export async function mockUpdateSettings(body: UpdateSettingsRequest): Promise<MeResponse> {
+  await sleep(300)
+  const me = loadMe()
+  if (!me) throw new ApiError('로그인 정보가 없어요', 401)
+  const next = { ...me, ...body }
+  localStorage.setItem(ME_KEY, JSON.stringify(next))
+  return next
 }
 
 export async function mockGetBookshelf(): Promise<BookshelfResponse> {
@@ -207,15 +237,19 @@ function makeQuestion(i: number): Question {
 export async function mockInterviewStart(): Promise<InterviewStartResponse> {
   await delay()
   qIndex = 0
-  return { question: makeQuestion(0) }
+  return { question: makeQuestion(0), answered: 0 }
+}
+
+export async function mockEndInterview(): Promise<void> {
+  await sleep(300)
 }
 
 export async function mockInterviewAnswer(skip: boolean): Promise<InterviewAnswerResponse> {
   await delay()
   const transcript = skip ? '' : QUESTIONS[qIndex].answer
   qIndex += 1
-  if (qIndex >= QUESTIONS.length) return { transcript, next: null, moments: ['대나무 숲 소리', '수란 먹는 법', '할머니의 고구마', '분홍 노을'] }
-  return { transcript, next: makeQuestion(qIndex) }
+  if (qIndex >= QUESTIONS.length) return { transcript, skipped: skip, next: null, moments: ['대나무 숲 소리', '수란 먹는 법', '할머니의 고구마', '분홍 노을'] }
+  return { transcript, skipped: skip, next: makeQuestion(qIndex) }
 }
 
 /** 화면에 보여 줄 실시간 전사 흉내 (mock 전용) */
@@ -281,17 +315,17 @@ export async function mockGetBook(id: string): Promise<Book> {
 const COVER_PHOTO_MAIN = '/img/cover-main.png'
 
 // ── 리더 · 문체 · 표지 · 데이터 삭제 ──────────────────
-import type { ChapterContent, Evidence, StyleName } from './types'
+import type { ChapterContent, Evidence, StyleCode } from './types'
 
 const VOICE = 'mock://voice'
-const FIRST: Record<StyleName, string> = {
-  에세이: '오후 두 시쯤, 비가 갑자기 쏟아졌다. ',
-  감성: '비는 예고도 없이, 우리를 골목 끝으로 데려갔다. ',
-  동화: '비가 톡톡 내리던 날, 두 친구는 작은 카페로 쏙 들어갔어요. ',
+const FIRST: Record<StyleCode, string> = {
+  ESSAY: '오후 두 시쯤, 비가 갑자기 쏟아졌다. ',
+  EMOTIONAL: '비는 예고도 없이, 우리를 골목 끝으로 데려갔다. ',
+  FAIRYTALE: '비가 톡톡 내리던 날, 두 친구는 작은 카페로 쏙 들어갔어요. ',
 }
 const CAFE: Evidence = { photoUrl: '/img/evidence-photo.png', photoLabel: '사진 · 16:52 골목 카페', photoNote: '비 내리던 골목의 작은 카페', transcript: '비 왔어요 갑자기. 우산 없어서 골목 카페 들어갔는데…', audioUrl: VOICE, interviewLabel: '인터뷰 · 2일차' }
 
-let currentStyle: StyleName = '에세이'
+let currentStyle: StyleCode = 'ESSAY'
 export async function mockGetChapterContent(_bookId: string, n: number): Promise<ChapterContent> {
   await delay()
   const style = currentStyle
@@ -309,7 +343,7 @@ export async function mockGetChapterContent(_bookId: string, n: number): Promise
   }
 }
 
-export async function mockRestyle(style: StyleName): Promise<{ jobId: string }> {
+export async function mockRestyle(style: StyleCode): Promise<{ jobId: string }> {
   const r = await mockStartJob('restyle')
   currentStyle = style
   return r
@@ -318,6 +352,6 @@ export async function mockRestyle(style: StyleName): Promise<{ jobId: string }> 
 export async function mockDeleteMyData(): Promise<void> {
   await delay()
   try {
-    ;['yhm.mock', 'yhm.mock.meta', 'yhm.mock.bind'].forEach((k) => localStorage.removeItem(k))
+    ;['yhm.mock', 'yhm.mock.meta', 'yhm.mock.bind', 'yhm.mock.me'].forEach((k) => localStorage.removeItem(k))
   } catch { /* ignore */ }
 }

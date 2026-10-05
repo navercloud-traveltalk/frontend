@@ -87,7 +87,8 @@ export function useInterview(tripId: string, day: number) {
       try {
         const res = await api.answerInterview(tripId, day, blob)
         if (!aliveRef.current) return
-        dispatch({ type: 'ANSWERED' })
+        // 건너뛴 질문(skip 요청 또는 전사가 빈 답변)은 답한 질문으로 세지 않는다
+        if (blob !== null && !res.skipped) dispatch({ type: 'ANSWERED' })
         lastBlobRef.current = null
         if (res.next) {
           if (sheetRef.current) pendingRef.current = res.next
@@ -228,8 +229,12 @@ export function useInterview(tripId: string, day: number) {
       }
 
       try {
-        const { question } = await api.startInterview(tripId, day)
-        if (aliveRef.current) playQuestion(question)
+        const { question, answered } = await api.startInterview(tripId, day)
+        // 이어 하기: 서버가 첫 미답변 질문부터 돌려주고, 이미 답한 수를 알려 준다
+        if (aliveRef.current) {
+          dispatch({ type: 'SET_ANSWERED', count: answered ?? 0 })
+          playQuestion(question)
+        }
       } catch {
         if (aliveRef.current) dispatch({ type: 'START_ERROR' })
       }
@@ -272,11 +277,21 @@ export function useInterview(tripId: string, day: number) {
     else if (questionRef.current && !state.sendError && state.phase !== 'thinking') playQuestion(questionRef.current)
   }, [finish, playQuestion, state.phase, state.sendError])
 
+  /** 「여기까지 저장하고 마치기」: 서버에 알려 남은 질문을 건너뜀 처리한다(실패해도 마무리 화면은 연다) */
   const saveAndEnd = useCallback(() => {
     sheetRef.current = false
     pendingRef.current = null
+    void api.endInterview(tripId, day, 'SAVE_EXIT').catch(() => {})
     finish(momentsRef.current)
-  }, [finish])
+  }, [finish, tripId, day])
 
-  return { state, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, mock: USE_MOCK }
+  /** 「저장하지 않고 나가기」: 서버에 알려 이번 인터뷰의 음성·전사를 지우게 한다 */
+  const discard = useCallback(() => {
+    sheetRef.current = false
+    pendingRef.current = null
+    stopAll()
+    void api.endInterview(tripId, day, 'DISCARD').catch(() => {})
+  }, [stopAll, tripId, day])
+
+  return { state, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, discard, mock: USE_MOCK }
 }

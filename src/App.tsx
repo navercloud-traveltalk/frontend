@@ -1,6 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { getSession } from './lib/session'
+import { ApiError } from './api/error'
+import { Button, Screen } from './components'
+import { useMe } from './lib/me'
 import Binding from './pages/Binding'
 import BookDetail from './pages/BookDetail'
 import Call from './pages/call/Call'
@@ -16,15 +18,40 @@ import TodayRedirect from './pages/TodayRedirect'
 import Upload from './pages/Upload'
 import Writing from './pages/Writing'
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } })
+const is401 = (e: unknown) => e instanceof ApiError && e.status === 401
 
-/** 사용자 ID가 없으면 어느 경로로 들어와도 /start 로 보낸다 */
+const queryClient: QueryClient = new QueryClient({
+  // 쿠키가 만료돼 어떤 요청이든 401 이 오면 사용자 확인을 다시 하게 해 /start 로 보낸다
+  queryCache: new QueryCache({ onError: (e, q) => { if (is401(e) && q.queryKey[0] !== 'me') void queryClient.invalidateQueries({ queryKey: ['me'] }) } }),
+  defaultOptions: { queries: { retry: (n, e) => !is401(e) && n < 1, refetchOnWindowFocus: false } },
+})
+
+function Loading() {
+  return <Screen><p style={{ padding: 20, color: 'var(--ink-soft)' }}>잠깐만요…</p></Screen>
+}
+
+/** 쿠키로 확인된 사용자가 없으면 어느 경로로 들어와도 /start 로 보낸다 */
 function RequireUser() {
-  return getSession() ? <Outlet /> : <Navigate to="/start" replace />
+  const me = useMe()
+  if (me.isPending) return <Loading />
+  if (me.isError) {
+    if (is401(me.error)) return <Navigate to="/start" replace />
+    return (
+      <Screen>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16, fontSize: 15, lineHeight: 1.6, color: 'var(--ink-soft)', textAlign: 'center' }}>
+          <p>서버에 연결하지 못했어요.<br />저장된 책은 그대로 있어요.</p>
+          <Button onClick={() => me.refetch()}>다시 시도</Button>
+        </div>
+      </Screen>
+    )
+  }
+  return <Outlet />
 }
 
 function StartGate() {
-  return getSession() ? <Navigate to="/" replace /> : <Start />
+  const me = useMe()
+  if (me.isPending) return <Loading />
+  return me.isSuccess ? <Navigate to="/" replace /> : <Start />
 }
 
 export default function App() {
