@@ -33,7 +33,13 @@ export default function Upload() {
   })
   useEffect(() => {
     if (job.data?.status === 'done') nav(`/trips/${id}/today/scenes`, { replace: true })
-  }, [job.data?.status, id, nav])
+    // 사진은 모두 저장됐지만 장면 묶기가 실패한 경우: 멈추지 않고 안내 + 다시 시도
+    if (job.data?.status === 'failed' || job.isError) {
+      setJobId(null)
+      setError('사진은 모두 저장됐어요. 장면을 묶지 못했어요.')
+      setPhase('failed')
+    }
+  }, [job.data?.status, job.isError, id, nav])
 
   useEffect(() => () => picks.forEach((p) => p.file && URL.revokeObjectURL(p.src)), []) // eslint-disable-line react-hooks/exhaustive-deps
 
