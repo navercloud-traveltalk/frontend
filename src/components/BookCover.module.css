@@ -1,0 +1,31 @@
+.cover { position: relative; display: flex; flex: none; flex-direction: column; gap: 8px; width: var(--w); height: var(--h); padding: 12px; overflow: hidden; border-radius: var(--r-book); box-shadow: var(--shadow-book); background: var(--red); color: #fff; text-align: left; }
+.red { background: var(--red); }
+.teal { background: var(--teal); }
+.navy { background: var(--navy); }
+.slate { background: var(--slate); }
+.band { position: absolute; inset: 0 auto 0 0; width: 5px; background: rgba(42, 36, 32, 0.31); }
+.text { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 3px; }
+.title { font-family: var(--font-serif); font-weight: 900; font-size: var(--title); line-height: 1.25; }
+.sub { font-size: var(--sub); font-weight: 500; line-height: normal; color: rgba(255, 255, 255, 0.78); white-space: nowrap; }
+.brand { position: absolute; left: calc(50% - 12px); top: calc(100% - 19px); font-family: var(--font-serif); font-weight: 700; font-size: var(--brand); line-height: normal; white-space: nowrap; }
+
+/* 사진 띠 */
+.photo { padding: 0; gap: 8px; background: var(--ink-soft); color: var(--ink); }
+.bg { position: absolute; inset: 0; background: linear-gradient(#3b3028, #1b1612) center / cover; }
+.photo .text { position: relative; flex: none; height: 62px; padding: 12px; background: rgba(255, 252, 246, 0.91); }
+.photo .band { z-index: 1; }
+.photo .title { color: var(--ink); }
+.photo .sub { color: var(--ink-soft); }
+.photo .brand { color: var(--ink); }
+
+/* 액자 */
+.framePic { flex: none; width: 100%; height: calc(var(--h) * 0.38); border: 3px solid var(--paper-deep); background: linear-gradient(#3b3028, #1b1612) center / cover; }
+.frame .text { align-items: center; text-align: center; }
+
+/* 천 */
+.circle { flex: none; width: calc(var(--w) * 0.42); aspect-ratio: 1; border-radius: 50%; background: linear-gradient(#3b3028, #1b1612) center / cover; }
+.cloth .text { align-items: center; text-align: center; }
+.cloth .title, .cloth .brand { color: var(--amber); }
+
+/* 타이포 */
+.type .text { align-items: flex-start; }

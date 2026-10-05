@@ -1,0 +1,11 @@
+.spine { display: flex; flex: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 8px 4px; overflow: hidden; border-left: 2px solid rgba(42, 36, 32, 0.13); border-right: 1px solid rgba(42, 36, 32, 0.13); border-radius: var(--r-book); box-shadow: var(--shadow-book); color: var(--paper-light); }
+.red { background: var(--red); }
+.teal { background: var(--teal); }
+.navy { background: var(--navy); }
+.slate { background: var(--slate); }
+.tbox { display: flex; flex: none; align-items: center; justify-content: center; }
+.lbox { display: flex; flex: none; align-items: center; justify-content: center; width: 8px; height: 36px; }
+.rot { flex: none; transform: rotate(90deg); }
+.title { display: flex; flex-direction: column; justify-content: center; font-family: var(--font-serif); font-weight: 700; font-size: 11px; line-height: 0; color: var(--paper-light); text-align: left; }
+.title p { line-height: normal; }
+.label { font-size: 7px; line-height: normal; color: rgba(255, 255, 255, 0.78); white-space: nowrap; }

@@ -1,0 +1,16 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--paper-light);
+  color: var(--ink-soft);
+  font-size: var(--fs-13);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.tag { padding: 7px 10px; font-size: var(--fs-11); font-weight: 400; }
+.selected { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; }
+.dark { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.22); color: rgba(255, 255, 255, 0.9); }

@@ -1,0 +1,45 @@
+.page { display: flex; flex: 1; flex-direction: column; gap: 16px; min-height: 0; padding: 0 30px 20px; overflow-y: auto; background: var(--paper-light); transition: opacity 0.2s; }
+.bar { display: flex; flex: none; align-items: center; justify-content: space-between; width: 100%; height: 52px; }
+.bar button { display: flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px; }
+.aa { font-family: var(--font-serif); font-size: 17px; font-weight: 700; line-height: normal; color: var(--ink); }
+.titleBox { display: flex; flex: none; flex-direction: column; gap: 8px; width: 100%; }
+.label { font-size: 13px; font-weight: 700; line-height: normal; color: var(--red); white-space: nowrap; }
+.title { font-size: 32px; line-height: 1.28; }
+.photo { flex: none; width: 100%; height: 184px; border-radius: 4px; background: linear-gradient(#3b3028, #1b1612) center / cover; }
+.caption { flex: none; font-size: 10px; line-height: normal; color: var(--ink-mute); white-space: nowrap; }
+.text { flex: none; font-family: var(--font-serif); font-size: var(--fs, 17px); font-weight: 500; line-height: 1.8; color: var(--ink); }
+.text p + p { margin-top: 0.8em; }
+.ev { cursor: pointer; text-decoration: underline; text-decoration-color: var(--teal); text-decoration-skip-ink: none; text-underline-position: from-font; }
+.quote { display: flex; flex: none; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.quoteText { width: 100%; font-family: var(--font-serif); font-size: 20px; font-weight: 900; line-height: 1.55; color: var(--red); text-align: center; }
+.voice { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: var(--teal); font-size: 13px; font-weight: 700; line-height: normal; color: #fff; white-space: nowrap; }
+.progress { display: flex; flex: 1; flex-direction: column; justify-content: flex-end; gap: 6px; min-height: 30px; }
+.bar3 { display: flex; flex: none; width: 100%; height: 3px; overflow: hidden; border-radius: 999px; background: var(--paper-deep); }
+.bar3 span { height: 100%; border-radius: 999px; background: var(--red); }
+.progress p { font-size: 10px; line-height: normal; color: var(--ink-mute); text-align: right; }
+.state { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
+
+/* 쪽 넘기기: 화면 양 끝 가장자리를 눌러도 넘어간다 (제목 막대 아래만) */
+.nav { position: absolute; top: 120px; bottom: 60px; left: 0; right: 0; display: flex; justify-content: space-between; pointer-events: none; }
+.nav button { width: 22px; height: 100%; pointer-events: auto; }
+.nav button:disabled { pointer-events: none; }
+
+/* 근거 시트 */
+.evBody { display: flex; flex: 1; flex-direction: column; gap: 16px; }
+.evPhoto { display: flex; flex: none; align-items: center; gap: 12px; }
+.evImg { flex: none; width: 92px; height: 72px; border-radius: 8px; background: linear-gradient(#3b3028, #1b1612) center / cover; }
+.evInfo { display: flex; flex-direction: column; gap: 4px; line-height: normal; white-space: nowrap; }
+.evInfo p:first-child { font-size: 13px; font-weight: 700; color: var(--red); }
+.evInfo p:last-child { font-size: 11px; color: var(--ink-mute); }
+.evTalk { display: flex; flex: none; flex-direction: column; gap: 8px; }
+.bubble { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 16px 16px 16px 4px; background: var(--paper-deep); }
+.bubble p { flex: 1; min-width: 0; font-size: 15px; line-height: 1.5; color: var(--ink); }
+.round { display: flex; flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 999px; background: var(--teal); color: #fff; }
+.interview { font-size: 13px; font-weight: 700; line-height: normal; color: var(--teal); }
+.principle { margin-top: auto; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+
+/* 글자 크기 시트 */
+.sizes { display: flex; gap: 8px; }
+.size { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 4px; padding: 14px 0; border: 1px solid var(--line); border-radius: 14px; font-size: 13px; color: var(--ink-soft); }
+.size span { font-family: var(--font-serif); font-weight: 700; color: var(--ink); }
+.sizeOn { border-color: var(--red); background: rgba(181, 72, 47, 0.05); color: var(--red); }

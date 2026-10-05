@@ -1,0 +1,20 @@
+.head { display: flex; flex: none; align-items: center; gap: 12px; height: 56px; padding: 0 20px; }
+.head button { display: flex; }
+.head h1 { font-size: 20px; line-height: normal; white-space: nowrap; }
+.content { display: flex; flex: 1; flex-direction: column; gap: 24px; min-height: 0; padding: 16px 20px 24px; overflow-y: auto; }
+.contentLast { padding-bottom: 18px; }
+.card { display: flex; flex: none; flex-direction: column; align-items: flex-start; gap: 20px; width: 100%; padding: 32px 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-light); box-shadow: var(--shadow-book); }
+.label { font-size: 13px; font-weight: 700; line-height: normal; color: var(--red); }
+.title { width: 100%; font-size: 24px; line-height: 1.3; }
+.rule { flex: none; width: 42px; height: 2px; background: var(--amber); }
+.bodyText { width: 100%; font-family: var(--font-serif); font-size: 17px; font-weight: 500; line-height: 1.8; color: var(--ink-soft); }
+.moments { display: flex; flex: none; flex-direction: column; gap: 12px; width: 100%; }
+.momentsLabel { font-size: 13px; font-weight: 700; line-height: normal; color: var(--ink-soft); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.bottom { display: flex; flex: 1; flex-direction: column; justify-content: flex-end; gap: 12px; min-height: 0; }
+.note { font-size: 13px; line-height: normal; color: var(--ink-mute); text-align: center; }
+.lastNote { font-size: 13px; font-weight: 700; line-height: normal; color: var(--red); text-align: center; }
+.buttons { display: flex; flex-direction: column; gap: 2px; }
+.bottom:has(.lastNote) { gap: 4px; }
+.err { font-size: 12px; line-height: 1.5; color: var(--red); text-align: center; }
+.state { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 0 20px; text-align: center; font-size: 15px; line-height: 1.6; color: var(--ink-soft); }

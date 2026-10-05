@@ -1,0 +1,26 @@
+.body { display: flex; flex: 1; flex-direction: column; gap: 12px; min-height: 0; padding: 0 20px; overflow-y: auto; }
+.intro { flex: none; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.count { display: flex; flex: none; align-items: flex-start; justify-content: space-between; }
+.count p { font-size: 15px; font-weight: 700; line-height: normal; color: var(--ink); }
+.count button { display: flex; }
+.grid { display: grid; flex: none; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 105px; gap: 5px; width: 100%; }
+.photo { position: relative; display: block; width: 100%; height: 100%; background: linear-gradient(#3b3028, #1b1612) center / cover; }
+.dim::after { content: ''; position: absolute; inset: 0; background: rgba(246, 241, 232, 0.55); }
+.photoFail::after { content: ''; position: absolute; inset: 0; background: rgba(181, 72, 47, 0.45); }
+.check { position: absolute; top: 7px; right: 7px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 999px; background: var(--red); color: #fff; }
+.fixed { position: sticky; bottom: 76px; display: flex; flex: none; width: 100%; padding: 12px 20px; background: var(--paper); }
+
+.empty { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding-bottom: 40px; }
+.pickBox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 200px; border: 1px dashed var(--red); border-radius: 16px; color: var(--red); font-family: var(--font-serif); font-size: 15px; font-weight: 700; }
+.sample { font-size: 12px; font-weight: 500; color: var(--ink-mute); text-decoration: underline; }
+
+/* 올리는 중 · 읽는 중 · 실패 */
+.progressBody { display: flex; flex: 1; flex-direction: column; gap: 24px; min-height: 0; padding: 24px 20px 0; overflow-y: auto; }
+.card { display: flex; flex: none; flex-direction: column; gap: 16px; width: 100%; padding: 20px; border-radius: 16px; background: var(--paper-light); box-shadow: var(--shadow-toast); }
+.cardHead { display: flex; align-items: flex-start; justify-content: space-between; }
+.cardTitle { font-family: var(--font-serif); font-size: 17px; font-weight: 700; line-height: 1.3; color: var(--ink); }
+.cardIcon { color: var(--red); }
+.bar { display: flex; flex: none; width: 100%; height: 8px; overflow: hidden; border-radius: 999px; background: var(--paper-deep); }
+.bar span { height: 100%; border-radius: 999px; background: var(--red); transition: width 0.3s; }
+.cardNote { font-size: 13px; line-height: 1.5; color: var(--ink-mute); }
+.cardActions { display: flex; flex-direction: column; gap: 8px; }

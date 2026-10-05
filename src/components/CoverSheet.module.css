@@ -1,0 +1,4 @@
+.preview { display: flex; flex: none; justify-content: center; padding: 16px 0; border-radius: 16px; background: var(--paper-deep); }
+.label { font-size: 13px; font-weight: 700; line-height: normal; color: var(--ink-soft); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.err { font-size: 12px; line-height: 1.5; color: var(--red); text-align: center; }

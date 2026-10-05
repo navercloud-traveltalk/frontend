@@ -1,0 +1,40 @@
+.body { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 22px; min-height: 0; padding: 28px 20px 20px; overflow-y: auto; }
+.hero { display: flex; flex: none; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+.art { position: relative; flex: none; width: 230px; height: 236px; }
+.knot { position: absolute; left: 57px; width: 8px; height: 8px; }
+.knotA { top: 45px; }
+.knotB { top: 135px; }
+.thread { position: absolute; left: 60px; top: 28px; width: 2px; height: 136px; border-radius: 1px; background: var(--amber); }
+.cover { position: absolute; left: 65px; top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; width: 112px; height: 168px; padding: 23px 15px 16px; overflow: hidden; border: 1.5px solid var(--red); border-radius: 2px 5px 5px 2px; background: var(--paper-light); box-shadow: var(--shadow-book); }
+.fill { position: absolute; left: -1.5px; bottom: -1.5px; width: 112px; background: rgba(181, 72, 47, 0.07); transition: height 1s; }
+.band { position: absolute; top: -1.5px; bottom: -1.5px; left: -1.5px; width: 5px; background: rgba(181, 72, 47, 0.46); }
+.coverLabel { position: relative; width: 100%; font-size: 9px; font-weight: 700; line-height: normal; color: var(--red); text-align: center; }
+.amber { position: relative; flex: none; width: 28px; height: 2px; background: var(--amber); }
+.lines { position: relative; display: flex; flex: none; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+.lines i { display: block; height: 1px; background: var(--line); }
+.brand { position: absolute; left: calc(50% - 12px); top: calc(100% - 21.5px); font-family: var(--font-serif); font-size: 8px; font-weight: 700; line-height: normal; color: var(--ink-soft); white-space: nowrap; }
+.paper { position: absolute; display: flex; align-items: center; justify-content: center; }
+.paper span { display: block; flex: none; }
+.p1 { left: 39px; top: 173.24px; width: 158.29px; height: 20.755px; }
+.p1 span { width: 158px; height: 18px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper-light); box-shadow: var(--shadow-book); transform: rotate(-1deg); }
+.p2 { left: 28.37px; top: 187px; width: 172.523px; height: 23.992px; }
+.p2 span { width: 172px; height: 18px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper-light); transform: rotate(2deg); }
+.p3 { left: 34px; top: 189.42px; width: 164.717px; height: 26.558px; z-index: -1; }
+.p3 span { width: 164px; height: 18px; border-radius: 3px; background: var(--line); opacity: 0.7; transform: rotate(-3deg); }
+.text { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 100%; line-height: normal; }
+.title { font-family: var(--font-serif); font-size: 24px; font-weight: 900; line-height: 1.3; color: var(--ink); text-align: center; }
+.sub { font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+
+.card { display: flex; flex: none; flex-direction: column; gap: 2px; width: 100%; padding: 15px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-light); box-shadow: var(--shadow-book); }
+.step { display: flex; flex: none; align-items: center; gap: 12px; height: 44px; }
+.step p { flex: 1; font-size: 13px; line-height: normal; }
+.doneText { font-weight: 500; color: var(--ink-soft); }
+.now { font-weight: 700; color: var(--ink-soft); }
+.todo { font-weight: 500; color: var(--ink-mute); }
+.check { display: flex; flex: none; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 11px; background: var(--teal); }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+.bottom { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; width: 100%; min-height: 0; }
+.note { width: 100%; font-size: 12px; line-height: 1.55; color: var(--ink-mute); text-align: center; }
+.leave { display: flex; flex: none; align-items: center; justify-content: center; width: 100%; height: 40px; padding: 0 16px; font-size: 15px; font-weight: 700; color: var(--red); }

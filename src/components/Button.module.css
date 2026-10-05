@@ -1,0 +1,9 @@
+.btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 54px; padding: 0 16px; border-radius: var(--r-btn); font-family: var(--font-sans); font-size: var(--fs-15); font-weight: 700; line-height: normal; white-space: nowrap; transition: opacity 0.15s; }
+.btn:active:not(:disabled) { opacity: 0.85; }
+.primary { background: var(--red); color: var(--paper-light); }
+.primary:disabled { background: var(--btn-off-bg); color: var(--btn-off-ink); }
+.outline { border: 1px solid var(--red); color: var(--red); }
+.text { height: 40px; color: var(--red); }
+.teal { background: var(--teal); color: #fff; }
+.amber { background: var(--amber); color: var(--ink); }
+.ghostDark { border: 1px solid rgba(255, 255, 255, 0.25); color: #fff; }

@@ -1,0 +1,1 @@
+.avatar { display: flex; flex: none; align-items: center; justify-content: center; width: var(--s); height: var(--s); border-radius: 999px; overflow: hidden; box-shadow: 0 12px 36px rgba(233, 179, 95, 0.22); background: radial-gradient(circle calc(var(--s) * 0.67) at 38% 35%, #e9b35f 0%, #cf7e47 50%, #c2633b 75%, #b5482f 100%); }

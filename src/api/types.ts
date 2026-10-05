@@ -1,0 +1,212 @@
+/**
+ * 여행말 API 타입 — 백엔드 담당은 이 파일을 기준으로 맞춘다.
+ * 지금은 src/api/mock.ts 가 같은 모양의 가짜 응답을 돌려준다.
+ */
+
+export type Companion = '혼자' | '친구' | '가족' | '연인'
+
+// ── 사용자 ────────────────────────────────────────────
+/** POST /users */
+export interface CreateUserRequest { nickname: string }
+export interface CreateUserResponse { userId: string; nickname: string }
+
+// ── 책장 ──────────────────────────────────────────────
+export type CoverType = 'photo' | 'frame' | 'cloth' | 'type'
+export type CoverColor = 'red' | 'teal' | 'navy' | 'slate'
+
+/** 선반 위에서 어떻게 꽂을지: 표지가 보이게(cover) / 책등만(spine) / 작은 표지(mini) */
+export type ShelfStyle = 'cover' | 'spine' | 'mini'
+
+export interface BookSummary {
+  id: string
+  title: string
+  place: string
+  /** 표지에 찍히는 날짜, 예: "2026.09" */
+  dateLabel: string
+  /** 책등 두께 결정 (1–2일 / 3–5일 / 6일 이상) */
+  days: number
+  /** 서버가 계산한 책등 두께(px). 없으면 days 로 계산 (1–2일 24 / 3–5일 34 / 6일+ 46) */
+  spineWidth?: number
+  coverType: CoverType
+  coverColor: CoverColor
+  coverPhotoUrl?: string
+  shelfStyle: ShelfStyle
+}
+
+/** writing: 오늘 사진 기다리는 중 / todayDone: 오늘 인터뷰 끝 / binding: 책 엮는 중 */
+export type TripPhase = 'writing' | 'todayDone' | 'binding'
+
+export interface InProgressTrip {
+  id: string
+  place: string
+  /** 현재 몇 일차 */
+  day: number
+  phase: TripPhase
+  latestPhotoUrl?: string
+  /** binding 일 때 0–1 */
+  bindingProgress?: number
+}
+
+/** GET /bookshelf */
+export interface BookshelfResponse {
+  nickname: string
+  inProgressTrip: InProgressTrip | null
+  books: BookSummary[]
+}
+
+// ── 여행 ──────────────────────────────────────────────
+/** POST /trips */
+export interface CreateTripRequest {
+  place: string
+  /** YYYY-MM-DD */
+  startDate: string
+  endDate: string
+  companions: Companion
+}
+export interface CreateTripResponse { tripId: string }
+
+// ── 오늘 (사진 → 장면) ────────────────────────────────
+/** GET /trips/:id — 화면 머리글(“7월 14일 · 여행 2일차”)과 마지막 날 판단에 쓴다 */
+export interface TripInfo {
+  id: string
+  place: string
+  startDate: string
+  endDate: string
+  day: number
+  totalDays: number
+  /** “7월 14일” */
+  dateLabel: string
+}
+
+/** POST /trips/:id/days/:day/photos/upload-urls {count} */
+export interface UploadUrlsResponse { urls: string[] }
+
+/** POST /trips/:id/days/:day/analyze · /chapter · /trips/:id/finish · /books/:id/restyle */
+export interface JobResponse { jobId: string }
+
+/** GET /jobs/:jobId */
+export type JobStatus = 'running' | 'done' | 'failed'
+export interface JobStatusResponse { status: JobStatus; progress: number }
+
+export interface Scene {
+  id: string
+  /** 사진 장면이면 "09:40", 사진 없는 간격이면 "14:00–16:50" */
+  time: string
+  place?: string
+  title: string
+  note: string
+  photoCount: number
+  thumbs: string[]
+  /** 사진이 없는 빈 시간(질문 후보) */
+  gap: boolean
+}
+/** GET /trips/:id/days/:day/scenes */
+export interface ScenesResponse { scenes: Scene[] }
+
+// ── 인터뷰 (턴제 통화) ─────────────────────────────────
+export interface SceneRef {
+  /** "14:00–16:50" 또는 "09:40 · 경기전" */
+  head: string
+  title: string
+  note: string
+  gap: boolean
+  thumbs?: string[]
+}
+
+export interface Question {
+  /** 1부터 */
+  index: number
+  total: number
+  text: string
+  /** 질문 음성(mp3) 주소 */
+  audioUrl: string
+  /** 이 질문의 근거가 된 장면. 마지막 질문처럼 없을 수 있다 */
+  sceneRef?: SceneRef | null
+}
+
+/** POST /trips/:id/days/:day/interview/start */
+export interface InterviewStartResponse { question: Question }
+
+/**
+ * POST /trips/:id/days/:day/interview/answer  (multipart: audio=녹음 파일, 건너뛰기면 skip=true)
+ * next 가 null 이면 마지막 질문이 끝난 것이다. 이때 moments(오늘의 순간 칩)를 함께 준다.
+ */
+export interface InterviewAnswerResponse {
+  transcript: string
+  next: Question | null
+  moments?: string[]
+}
+
+// ── 챕터 초안 · 책 완성 ────────────────────────────────
+/** GET /trips/:id/days/:day/chapter */
+export interface ChapterDraft {
+  /** “2일차 · 비 오는 전주” */
+  label: string
+  title: string
+  /** 줄바꿈(\n)으로 문단을 나눈다 */
+  body: string
+  /** 포착 순간 칩 */
+  moments: string[]
+}
+
+/** POST /trips/:id/finish */
+export interface FinishTripResponse { jobId: string; bookId: string }
+
+export interface BookChapterItem { n: number; day: number; title: string }
+
+/** GET /books/:id */
+export interface Book {
+  id: string
+  title: string
+  place: string
+  /** “2026.07.13–07.15” */
+  dateRange: string
+  coverType: CoverType
+  coverColor: CoverColor
+  coverPhotoUrl?: string
+  stats: { days: number; chapters: number; photos: number; voiceMinutes: number }
+  chapters: BookChapterItem[]
+}
+
+// ── 리더 ──────────────────────────────────────────────
+export type StyleName = '에세이' | '감성' | '동화'
+
+/** 문장의 근거: 사진, 내가 한 말(전사), 저장된 음성 */
+export interface Evidence {
+  photoUrl?: string
+  /** “사진 · 16:52 골목 카페” */
+  photoLabel?: string
+  photoNote?: string
+  transcript?: string
+  /** 그때 내 목소리 음성 파일 주소 */
+  audioUrl?: string
+  /** “인터뷰 · 2일차” */
+  interviewLabel?: string
+}
+export interface Sentence { text: string; evidence?: Evidence }
+export interface Paragraph { sentences: Sentence[] }
+
+/** GET /books/:id/chapters/:n */
+export interface ChapterContent {
+  n: number
+  total: number
+  /** “2일차 · 비 오는 전주” */
+  label: string
+  title: string
+  photoUrl?: string
+  /** “16:52 · 골목 카페” */
+  photoCaption?: string
+  paragraphs: Paragraph[]
+  /** 문단 뒤에 크게 뜨는 인용 + 그때 내 목소리 */
+  pullQuote?: { text: string; audioUrl: string; seconds: number; transcript: string }
+  /** 책 전체에서 이 페이지 위치 (“24 / 61”) */
+  page: number
+  pages: number
+  style: StyleName
+}
+
+/** POST /books/:id/restyle {style} → JobResponse */
+export interface RestyleRequest { style: StyleName }
+
+/** PATCH /books/:id/cover */
+export interface UpdateCoverRequest { coverType: CoverType; coverColor: CoverColor }

@@ -1,0 +1,62 @@
+/* 여행말 디자인 토큰 — Figma "여행말 디자인 토큰과 컴포넌트" 보드에서 추출 */
+:root {
+  /* 종이와 잉크 */
+  --paper: #f6f1e8;
+  --paper-deep: #efe6d6;
+  --paper-light: #fffcf6;
+  --line: #e4d9c6;
+  --ink: #2a2420;
+  --ink-soft: #5a4f46;
+  --ink-mute: #8a7e72;
+
+  /* 포인트 */
+  --red: #b5482f;
+  --teal: #2f6f7e;
+  --navy: #1d2833;
+  --slate: #3a4d61; /* 책등 */
+  --amber: #e9b35f;
+  --wood: #b08a63;
+  --wood-dark: #8a6a4a;
+
+  /* 통화 화면 (어두운 배경) */
+  --call-top: #3a4d61;
+  --call-bottom: #1d2833;
+  --call-end: #c24a3d;
+  --call-accept: #3f7a58;
+
+  /* 글꼴 */
+  --font-serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --font-sans: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+
+  /* 글자 크기: 32 · 24 · 20 · 17 · 15 · 13 (+ 캡션 11, 9) */
+  --fs-32: 32px;
+  --fs-24: 24px;
+  --fs-20: 20px;
+  --fs-17: 17px;
+  --fs-15: 15px;
+  --fs-13: 13px;
+  --fs-11: 11px;
+  --fs-9: 9px;
+
+  /* 모서리 */
+  --r-btn: 14px;
+  --r-card: 16px;
+  --r-sheet: 24px;
+  --r-pill: 999px;
+  --r-book: 2px 4px 4px 2px;
+
+  /* 그림자 */
+  --shadow-book: 4px 8px 16px rgba(76, 56, 35, 0.15);
+  --shadow-sheet: 0 -8px 24px rgba(30, 23, 16, 0.12);
+  --shadow-toast: 0 6px 18px rgba(73, 55, 33, 0.08);
+
+  /* 레이아웃 */
+  --app-width: 430px;
+  --tabbar-h: 64px;
+  --gutter: 20px;
+}
+
+:root {
+  --btn-off-bg: #e8ded0;
+  --btn-off-ink: #a79b8e;
+}
