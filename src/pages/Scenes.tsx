@@ -4,8 +4,6 @@ import { api } from '../api'
 import { Button, Header, Screen, SceneCard } from '../components'
 import s from './Scenes.module.css'
 
-const PINS = [[36, 72], [128, 42], [228, 58], [312, 86]]
-
 export default function Scenes() {
   const { id = '' } = useParams()
   const nav = useNavigate()
@@ -27,11 +25,6 @@ export default function Scenes() {
       ) : (
         <>
           <div className={s.body}>
-            <div className={s.map}>
-              <img className={s.mapImg} src="/img/map.png" alt="" />
-              <img className={s.route} src="/img/route.png" alt="" />
-              {PINS.map(([x, y], i) => <img key={i} className={s.pin} src="/img/pin.svg" alt="" style={{ left: x, top: y }} />)}
-            </div>
             <div className={s.timeline}>
               <span className={s.line} />
               {scenes.map((sc) => (
