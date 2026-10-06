@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { api } from '../../api'
+import { api, ApiError } from '../../api'
 import type { Question } from '../../api/types'
 import { callReducer, initialCall } from './callReducer'
 
@@ -11,6 +11,12 @@ const MAX_ANSWER_MS = 55_000
 const SILENCE_MS = 2_000
 /** 소리가 이만큼 크면 말하는 중으로 본다 (RMS 0–1) */
 const MIN_VOICE_LEVEL = 0.03
+
+/** 질문 음성이 없을 때(음성 합성 실패) 글을 읽을 시간: 글자당 0.12초, 2~8초 */
+const readingMs = (text: string) => Math.min(8_000, Math.max(2_000, text.length * 120))
+
+/** 녹음 자체가 문제라 다시 보내도 같은 결과인 오류 → 녹음을 버리고 다시 듣는다 */
+const RECORD_AGAIN_CODES = new Set(['AUDIO_INVALID', 'AUDIO_TOO_LONG', 'AUDIO_REQUIRED'])
 
 const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='
 
@@ -34,6 +40,8 @@ export function useInterview(tripId: string, day: number) {
   const sheetRef = useRef(false)
   const pendingRef = useRef<Question | 'wrap' | null>(null)
   const momentsRef = useRef<string[]>([])
+  /** submit 이 beginListening 보다 먼저 정의돼서 참조로 부른다 */
+  const beginListeningRef = useRef<() => void>(() => {})
   const aliveRef = useRef(true)
 
   const clearTimers = () => {
@@ -85,7 +93,7 @@ export function useInterview(tripId: string, day: number) {
       lastBlobRef.current = blob
       dispatch({ type: 'THINKING' })
       try {
-        const res = await api.answerInterview(tripId, day, blob)
+        const res = await api.answerInterview(tripId, day, blob, questionRef.current?.index)
         if (!aliveRef.current) return
         // 건너뛴 질문(skip 요청 또는 전사가 빈 답변)은 답한 질문으로 세지 않는다
         if (blob !== null && !res.skipped) dispatch({ type: 'ANSWERED' })
@@ -98,8 +106,15 @@ export function useInterview(tripId: string, day: number) {
           if (sheetRef.current) pendingRef.current = 'wrap'
           else finish(res.moments ?? [])
         }
-      } catch {
-        if (aliveRef.current) dispatch({ type: 'SEND_ERROR' })
+      } catch (e) {
+        if (!aliveRef.current) return
+        if (e instanceof ApiError && e.status === 400 && e.code && RECORD_AGAIN_CODES.has(e.code)) {
+          lastBlobRef.current = null
+          dispatch({ type: 'RECORD_AGAIN', message: e.message })
+          if (!sheetRef.current) beginListeningRef.current()
+          return
+        }
+        dispatch({ type: 'SEND_ERROR' })
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -166,6 +181,7 @@ export function useInterview(tripId: string, day: number) {
     }, 100)
     timersRef.current.max = window.setTimeout(() => stopRecording(), MAX_ANSWER_MS)
   }, [stopRecording])
+  beginListeningRef.current = beginListening
 
   const playQuestion = useCallback(
     (q: Question) => {
@@ -177,6 +193,12 @@ export function useInterview(tripId: string, day: number) {
         audio.onended = null
         audio.onerror = null
         if (!sheetRef.current) beginListening()
+      }
+      if (!q.audioUrl) {
+        // 질문 음성을 못 만든 경우: 글을 읽을 시간을 준 뒤 듣기로 넘어간다
+        audio.pause()
+        timersRef.current.auto = window.setTimeout(done, readingMs(q.text))
+        return
       }
       audio.onended = done
       audio.onerror = done
@@ -235,8 +257,10 @@ export function useInterview(tripId: string, day: number) {
           dispatch({ type: 'SET_ANSWERED', count: answered ?? 0 })
           playQuestion(question)
         }
-      } catch {
-        if (aliveRef.current) dispatch({ type: 'START_ERROR' })
+      } catch (e) {
+        if (!aliveRef.current) return
+        if (e instanceof ApiError && e.code === 'INTERVIEW_ENDED') dispatch({ type: 'ALREADY_ENDED' })
+        else dispatch({ type: 'START_ERROR', message: e instanceof ApiError && e.code ? e.message : undefined })
       }
     },
     [tripId, day, playQuestion],
