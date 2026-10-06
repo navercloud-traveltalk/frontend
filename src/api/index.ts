@@ -1,6 +1,6 @@
 import { mockCreateTrip, mockCreateUser, mockEndInterview, mockGetMe, mockUpdateSettings, mockGetBookshelf, mockDeleteMyData, mockFinishTrip, mockGetChapterContent, mockRestyle, mockGetBook, mockGetChapter, mockGetTrip, mockInterviewAnswer, mockInterviewStart, mockJobStatus, mockPutPhoto, mockScenes, mockStartJob, mockUploadUrls } from './mock'
 import type { Book, BookshelfResponse, ChapterContent, StyleCode, EndInterviewRequest, MeResponse, UpdateSettingsRequest, ChapterDraft, FinishTripResponse, CreateTripRequest, CreateTripResponse, CreateUserResponse, InterviewAnswerResponse, InterviewStartResponse, JobResponse, JobStatusResponse, ScenesResponse, TripInfo, UploadUrlsResponse } from './types'
-import { ApiError } from './error'
+import { ApiError, toApiError } from './error'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
 const BASE = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -19,7 +19,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   } catch {
     throw new ApiError('네트워크에 연결할 수 없어요')
   }
-  if (!res.ok) throw new ApiError('서버에서 응답을 받지 못했어요', res.status)
+  if (!res.ok) throw await toApiError(res, '서버에서 응답을 받지 못했어요')
   if (res.status === 204) return undefined as T
   return (await res.json()) as T
 }
@@ -62,19 +62,23 @@ export const api = {
   startInterview: (tripId: string, day: number): Promise<InterviewStartResponse> =>
     USE_MOCK ? mockInterviewStart() : request(`/trips/${tripId}/days/${day}/interview/start`, { method: 'POST' }),
 
-  /** 녹음 파일(건너뛰면 null)을 보내고 다음 질문을 받는다 */
-  answerInterview: async (tripId: string, day: number, audio: Blob | null): Promise<InterviewAnswerResponse> => {
+  /**
+   * 녹음 파일(건너뛰면 null)을 보내고 다음 질문을 받는다.
+   * index(질문 번호)를 함께 보내면 "다시 보내기"가 어느 질문의 재전송인지 서버가 정확히 가린다(같은 결과를 다시 돌려준다).
+   */
+  answerInterview: async (tripId: string, day: number, audio: Blob | null, index?: number): Promise<InterviewAnswerResponse> => {
     if (USE_MOCK) return mockInterviewAnswer(audio === null)
     const form = new FormData()
     if (audio) form.append('audio', audio, `answer.${audio.type.includes('mp4') ? 'm4a' : 'webm'}`)
     else form.append('skip', 'true')
+    if (index !== undefined) form.append('index', String(index))
     let res: Response
     try {
       res = await fetch(`${BASE}/trips/${tripId}/days/${day}/interview/answer`, { method: 'POST', body: form, credentials: 'include' })
     } catch {
       throw new ApiError('네트워크에 연결할 수 없어요')
     }
-    if (!res.ok) throw new ApiError('답변을 보내지 못했어요', res.status)
+    if (!res.ok) throw await toApiError(res, '답변을 보내지 못했어요')
     return (await res.json()) as InterviewAnswerResponse
   },
 

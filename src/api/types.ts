@@ -126,8 +126,8 @@ export interface Question {
   index: number
   total: number
   text: string
-  /** 질문 음성(mp3) 주소 */
-  audioUrl: string
+  /** 질문 음성(mp3) 주소. 음성을 만들지 못하면 없다(글만 보여 준다) */
+  audioUrl?: string
   /** 이 질문의 근거가 된 장면. 마지막 질문처럼 없을 수 있다 */
   sceneRef?: SceneRef | null
 }

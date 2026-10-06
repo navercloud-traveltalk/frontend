@@ -48,7 +48,9 @@ export default function Call() {
   const { state: c, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, discard, mock } = useInterview(id, day)
   const caption = useCaption(c.phase === 'listening', c.question?.index ?? 0, mock)
 
-  if (c.phase === 'incoming') return <Incoming c={c} accept={accept} mock={mock} photoCount={42} onLater={() => nav('/')} />
+  const photoCount = scenes.data?.scenes.reduce((n, sc) => n + sc.photoCount, 0)
+
+  if (c.phase === 'incoming') return <Incoming c={c} accept={accept} mock={mock} photoCount={photoCount} onLater={() => nav('/')} />
   if (c.phase === 'wrapUp') return <WrapUp id={id} day={day} c={c} sceneCount={scenes.data?.scenes.length ?? 0} />
 
   const q = c.question
@@ -77,6 +79,12 @@ export default function Call() {
           <div className={s.ref}>
             <p className={s.refLabel}>질문 근거 장면</p>
             <SceneCard gap={q.sceneRef.gap} head={q.sceneRef.head} title={q.sceneRef.title} note={q.sceneRef.note} thumbs={q.sceneRef.thumbs} />
+          </div>
+        )}
+
+        {c.recordError && c.phase === 'listening' && (
+          <div className={s.error} role="alert">
+            <p>{c.recordError}</p>
           </div>
         )}
 
@@ -127,7 +135,7 @@ export default function Call() {
   )
 }
 
-function Incoming({ c, accept, mock, photoCount, onLater }: { c: ReturnType<typeof useInterview>['state']; accept: (o?: { withoutMic?: boolean }) => void; mock: boolean; photoCount: number; onLater: () => void }) {
+function Incoming({ c, accept, mock, photoCount, onLater }: { c: ReturnType<typeof useInterview>['state']; accept: (o?: { withoutMic?: boolean }) => void; mock: boolean; photoCount?: number; onLater: () => void }) {
   const now = new Date()
   const h = now.getHours()
   const clock = `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')}`
@@ -139,12 +147,12 @@ function Incoming({ c, accept, mock, photoCount, onLater }: { c: ReturnType<type
           <Avatar size={132} />
           <div className={s.callerText}>
             <p className={s.callerName}>여행말 인터뷰어</p>
-            <p className={s.callerSub}>오늘 사진 {photoCount}장을 봤어요</p>
+            <p className={s.callerSub}>{photoCount ? `오늘 사진 ${photoCount}장을 봤어요` : '오늘 사진을 봤어요'}</p>
             <p className={s.callerAsk}>이야기 들려주실래요?</p>
           </div>
           {(c.micError || c.startError) && (
             <div className={s.notice} role="alert">
-              <p>{c.micError ?? '인터뷰를 시작하지 못했어요. 올린 사진과 장면은 그대로 저장돼 있어요. 다시 받아 주세요.'}</p>
+              <p>{c.micError ?? c.startErrorMessage ?? '인터뷰를 시작하지 못했어요. 올린 사진과 장면은 그대로 저장돼 있어요. 다시 받아 주세요.'}</p>
               {c.micError && mock && <button type="button" onClick={() => accept({ withoutMic: true })}>마이크 없이 체험하기</button>}
             </div>
           )}
@@ -187,14 +195,16 @@ function WrapUp({ id, day, c, sceneCount }: { id: string; day: number; c: Return
           <div className={s.wrapSummary}>
             <Avatar size={68} />
             <div className={s.wrapText}>
-              <p className={s.wrapTitle}>오늘 인터뷰는 여기까지예요</p>
+              <p className={s.wrapTitle}>{c.alreadyEnded ? '오늘 인터뷰는 이미 마쳤어요' : '오늘 인터뷰는 여기까지예요'}</p>
               <p className={s.wrapSub}>들려주신 이야기로 오늘의 챕터를 쓸게요</p>
             </div>
-            <div className={s.stats}>
-              <span>질문 {c.answered}개</span><i />
-              <span>{min}분 {sec}초</span><i />
-              <span>장면 {sceneCount}개</span>
-            </div>
+            {!c.alreadyEnded && (
+              <div className={s.stats}>
+                <span>질문 {c.answered}개</span><i />
+                <span>{min}분 {sec}초</span><i />
+                <span>장면 {sceneCount}개</span>
+              </div>
+            )}
             {c.moments.length > 0 && <div className={s.moments}>{c.moments.map((m) => <span key={m}>{m}</span>)}</div>}
           </div>
           <div className={s.wrapBottom}>
