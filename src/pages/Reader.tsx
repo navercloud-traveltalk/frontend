@@ -22,7 +22,7 @@ export default function Reader() {
   const q = useQuery({ queryKey: ['chapter-content', id, n], queryFn: () => api.getBookChapter(id, n) })
   const c = q.data
 
-  const [evidence, setEvidence] = useState<Evidence | null>(null)
+  const [evidence, setEvidence] = useState<Evidence[] | null>(null)
   const [sheet, setSheet] = useState<null | 'style' | 'size'>(null)
   const [fs, setFs] = useState(getSettings().fontSize)
   const [marked, setMarked] = useState(false)
@@ -79,13 +79,16 @@ export default function Reader() {
             <div className={s.text}>
               {c.paragraphs.map((p, i) => (
                 <p key={i}>
-                  {p.sentences.map((st, j) =>
-                    st.evidence ? (
-                      <span key={j} role="button" tabIndex={0} className={s.ev} onClick={() => setEvidence(st.evidence!)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setEvidence(st.evidence!)}>{st.text}</span>
+                  {p.sentences.map((st, j) => {
+                    // 서버 문장에는 사이 공백이 없다. 다중 근거(evidences)가 있으면 시트에 모두 보여 준다.
+                    const sep = j > 0 ? ' ' : ''
+                    const list = st.evidences?.length ? st.evidences : st.evidence ? [st.evidence] : null
+                    return list ? (
+                      <span key={j}>{sep}<span role="button" tabIndex={0} className={s.ev} onClick={() => setEvidence(list)} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setEvidence(list)}>{st.text}</span></span>
                     ) : (
-                      <span key={j}>{st.text}</span>
-                    ),
-                  )}
+                      <span key={j}>{sep}{st.text}</span>
+                    )
+                  })}
                 </p>
               ))}
             </div>
@@ -115,25 +118,9 @@ export default function Reader() {
       <BottomSheet open={!!evidence} onClose={() => { setEvidence(null); stopVoice(); setPlaying(null) }} title="이 문장의 근거" minHeight={440}>
         {evidence && (
           <div className={s.evBody}>
-            {evidence.photoUrl && (
-              <div className={s.evPhoto}>
-                <span className={s.evImg} style={{ backgroundImage: `url(${evidence.photoUrl})` }} />
-                <div className={s.evInfo}><p>{evidence.photoLabel}</p><p>{evidence.photoNote}</p></div>
-              </div>
-            )}
-            {evidence.transcript && (
-              <div className={s.evTalk}>
-                <div className={s.bubble}>
-                  <p>{evidence.transcript}</p>
-                  {evidence.audioUrl && (
-                    <button type="button" className={s.round} onClick={() => play('ev', evidence.audioUrl!, evidence.transcript ?? '')} aria-label="그때 내 목소리 듣기">
-                      <Icon name="play" size={16} />
-                    </button>
-                  )}
-                </div>
-                <p className={s.interview}>{playing === 'ev' ? '재생 중 · 누르면 멈춰요' : evidence.interviewLabel}</p>
-              </div>
-            )}
+            {evidence.map((ev, k) => (
+              <EvidenceItem key={k} ev={ev} playing={playing === `ev${k}`} onPlay={() => play(`ev${k}`, ev.audioUrl!, ev.transcript ?? '')} />
+            ))}
             <p className={s.principle}>여행말은 사진과 내가 한 말에 있는 내용만 씁니다.</p>
           </div>
         )}
@@ -155,4 +142,29 @@ export default function Reader() {
   )
 }
 
-
+/** 근거 하나: 사진 블록 + 내가 한 말(전사)·그때 목소리 */
+function EvidenceItem({ ev, playing, onPlay }: { ev: Evidence; playing: boolean; onPlay: () => void }) {
+  return (
+    <>
+      {ev.photoUrl && (
+        <div className={s.evPhoto}>
+          <span className={s.evImg} style={{ backgroundImage: `url(${ev.photoUrl})` }} />
+          <div className={s.evInfo}><p>{ev.photoLabel}</p><p>{ev.photoNote}</p></div>
+        </div>
+      )}
+      {ev.transcript && (
+        <div className={s.evTalk}>
+          <div className={s.bubble}>
+            <p>{ev.transcript}</p>
+            {ev.audioUrl && (
+              <button type="button" className={s.round} onClick={onPlay} aria-label="그때 내 목소리 듣기">
+                <Icon name="play" size={16} />
+              </button>
+            )}
+          </div>
+          <p className={s.interview}>{playing ? '재생 중 · 누르면 멈춰요' : ev.interviewLabel}</p>
+        </div>
+      )}
+    </>
+  )
+}
