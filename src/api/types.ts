@@ -220,7 +220,13 @@ export interface Evidence {
   /** “인터뷰 · 2일차” */
   interviewLabel?: string
 }
-export interface Sentence { text: string; evidence?: Evidence }
+export interface Sentence {
+  text: string
+  /** 대표 근거(첫 사진 + 첫 말). 없으면 밑줄 없음 */
+  evidence?: Evidence
+  /** 근거가 2개 이상인 문장만: 근거마다 하나씩, 저장된 순서대로 */
+  evidences?: Evidence[]
+}
 export interface Paragraph { sentences: Sentence[] }
 
 /** GET /books/:id/chapters/:n */
