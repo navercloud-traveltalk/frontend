@@ -6,6 +6,7 @@ import { mockLiveCaption } from '../../api/mock'
 import { Avatar, Icon, SceneCard, Screen, ThinkingDots, Waveform } from '../../components'
 import { useInterview } from './useInterview'
 import s from './Call.module.css'
+import { useTripStep } from '../../lib/steps'
 
 const mmss = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`
 
@@ -42,7 +43,7 @@ interface SpeechRecognitionLike {
 export default function Call() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
+  const { trip } = useTripStep(id, ['scenes', 'call'])
   const day = trip.data?.day ?? 1
   const scenes = useQuery({ queryKey: ['scenes', id, day], queryFn: () => api.getScenes(id, day), enabled: !!trip.data })
   const { state: c, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, discard, mock } = useInterview(id, day)

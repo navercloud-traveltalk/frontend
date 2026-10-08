@@ -4,12 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { Button, Screen, Tag } from '../components'
 import s from './Draft.module.css'
+import { useTripStep } from '../lib/steps'
 
 /** /trips/:id/today/draft — 오늘의 챕터 초안 (보통 날 / 마지막 날) */
 export default function Draft() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
+  const { trip } = useTripStep(id, ['draft'])
   const day = trip.data?.day ?? 1
   const q = useQuery({ queryKey: ['chapter', id, day], queryFn: () => api.getChapter(id, day), enabled: !!trip.data })
   const finish = useMutation({

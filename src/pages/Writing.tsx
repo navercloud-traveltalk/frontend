@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { api } from '../api'
 import { Button, Screen } from '../components'
 import { useJob } from '../lib/useJob'
 import s from './Writing.module.css'
+import { useTripStep } from '../lib/steps'
 
 function Step({ state, children }: { state: 'done' | 'now' | 'todo'; children: string }) {
   return (
@@ -43,7 +43,7 @@ export default function Writing() {
   const loc = useLocation()
   const [jobId, setJobId] = useState<string | null>((loc.state as { jobId?: string } | null)?.jobId ?? null)
   const [startFailed, setStartFailed] = useState(false)
-  const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
+  const { trip, info, ready } = useTripStep(id, ['writing'])
   const day = trip.data?.day ?? 1
   const job = useJob(jobId)
 
@@ -57,11 +57,13 @@ export default function Writing() {
     }
   }
 
-  // 새로고침 등으로 jobId를 잃었으면 다시 시작
+  // 새로고침·재진입으로 jobId를 잃었으면: 진행 중 작업이 있으면 그것을, 없으면 작성을 시작(이미 끝난 일차면 가드가 초안으로 보낸다)
   useEffect(() => {
-    if (!jobId && trip.data) void start()
+    if (jobId || !ready || (info && info.nextStep !== 'writing')) return
+    if (info?.jobId) setJobId(info.jobId)
+    else void start()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trip.data])
+  }, [ready, info])
 
   useEffect(() => {
     if (job.data?.status === 'done') nav(`/trips/${id}/today/draft`, { replace: true })

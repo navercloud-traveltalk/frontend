@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { STEP_LABEL, stepPath } from '../lib/steps'
 import { api } from '../api'
 import type { BookSummary, InProgressTrip } from '../api/types'
 import { BookCover, BookSpine, Button, Header, Icon, Screen, TabBar } from '../components'
@@ -72,7 +73,7 @@ function Writing({ trip }: { trip: InProgressTrip }) {
           <>
             <p className={s.kicker}>집필 중 · {trip.place} {trip.day}일차</p>
             <p className={s.lead}>오늘 밤 이야기를 기다리고 있어요</p>
-            <button type="button" className={s.infoBtn} onClick={() => nav(`/trips/${trip.id}/today/upload`)}>오늘 사진 올리기</button>
+            <button type="button" className={s.infoBtn} onClick={() => nav(stepPath(trip.id, trip.nextStep ?? 'upload'))}>{STEP_LABEL[trip.nextStep ?? 'upload']}</button>
           </>
         )}
         {trip.phase === 'todayDone' && (

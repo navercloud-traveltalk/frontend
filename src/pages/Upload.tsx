@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { SAMPLE_PHOTOS } from '../api/mock'
 import { Button, Header, Icon, Screen, TabBar } from '../components'
+import { useTripStep } from '../lib/steps'
 import s from './Upload.module.css'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
@@ -20,8 +21,22 @@ export default function Upload() {
   const [jobId, setJobId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
+  // 이미 다음 단계로 넘어간 일차면 그 화면으로 보낸다(사진을 다시 올리게 하지 않는다)
+  const { trip, info, ready } = useTripStep(id, ['upload', 'analyzing'])
   const day = trip.data?.day ?? 1
+  const [resumedCount, setResumedCount] = useState(0)
+  // 다시 들어왔을 때 사진 정리가 진행 중이면 그 작업을 이어서 보여 준다
+  useEffect(() => {
+    if (!ready || !info || phase !== 'pick' || jobId) return
+    if (info.nextStep === 'analyzing' && info.jobId) {
+      setResumedCount(info.photoCount)
+      setJobId(info.jobId)
+      setPhase('analyzing')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, info])
+  /** 이미 올려 둔 사진(이전에 올리고 정리 전에 나갔을 때) */
+  const uploaded = info?.nextStep === 'upload' ? info.photoCount : 0
 
   // 사진 읽는 중: 2초마다 작업 상태 확인, 끝나면 장면 화면으로
   const job = useQuery({
@@ -44,7 +59,7 @@ export default function Upload() {
   useEffect(() => () => picks.forEach((p) => p.file && URL.revokeObjectURL(p.src)), []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const selected = picks.filter((p) => p.selected)
-  const total = selected.length
+  const total = selected.length || resumedCount
   const failedCount = selected.filter((p) => !p.done).length
 
   const onFiles = (list: FileList | null) => {
@@ -98,6 +113,7 @@ export default function Upload() {
   }
 
   const startAnalyze = async () => {
+    if (picks.length === 0) setResumedCount(uploaded)
     setPhase('analyzing')
     setError(null)
     try {
@@ -157,6 +173,7 @@ export default function Upload() {
                 <span>오늘 찍은 사진 고르기</span>
               </button>
               {USE_MOCK && <button type="button" className={s.sample} onClick={useSamples}>예시 사진 42장으로 해 볼게요</button>}
+              {uploaded > 0 && <p className={s.intro}>이전에 올린 사진 {uploaded}장이 있어요. 그대로 장면을 만들 수 있어요.</p>}
             </div>
           ) : (
             <>
@@ -178,7 +195,9 @@ export default function Upload() {
 
       {phase === 'pick' && (
         <div className={s.fixed}>
-          {picks.length === 0 ? (
+          {picks.length === 0 && uploaded > 0 ? (
+            <Button onClick={startAnalyze}>올린 사진 {uploaded}장으로 장면 만들기</Button>
+          ) : picks.length === 0 ? (
             <Button onClick={() => fileRef.current?.click()}>사진 고르기</Button>
           ) : (
             <Button disabled={total === 0} onClick={startUpload}>사진 {total}장 올리기</Button>

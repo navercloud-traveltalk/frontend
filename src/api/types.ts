@@ -53,6 +53,22 @@ export interface InProgressTrip {
   latestPhotoUrl?: string
   /** binding 일 때 0–1 */
   bindingProgress?: number
+  /** 그 일차에서 다시 들어갈 화면(서버 계산). 책을 엮는 중이면 없다 */
+  nextStep?: NextStep
+}
+
+/** 일차에서 다음에 할 화면: 사진 올리기 · 사진 정리 중 · 장면 확인 · 인터뷰(이어 하기) · 챕터 작성 · 챕터 확인 */
+export type NextStep = 'upload' | 'analyzing' | 'scenes' | 'call' | 'writing' | 'draft'
+/** GET /trips/:id 의 days[] */
+export interface TripDayInfo {
+  day: number
+  dateLabel: string
+  status: string
+  nextStep: NextStep
+  /** 사진 정리·챕터 작성이 진행 중이면 그 작업 */
+  jobId?: string
+  /** 이미 올린 사진 수(업로드 중 포함) */
+  photoCount: number
 }
 
 /** GET /bookshelf */
@@ -84,6 +100,8 @@ export interface TripInfo {
   totalDays: number
   /** “7월 14일” */
   dateLabel: string
+  /** 일차별 진행 상태(서버가 계산, 없으면 이전 동작) */
+  days?: TripDayInfo[]
 }
 
 /** POST /trips/:id/days/:day/photos/upload-urls {count} */

@@ -33,7 +33,7 @@ export default function NewTrip() {
     mutationFn: () => api.createTrip({ place: place.trim(), startDate: start, endDate: end, companions: who }),
     onSuccess: ({ tripId }) => {
       qc.invalidateQueries({ queryKey: ['bookshelf'] })
-      nav(`/trips/${tripId}/today/upload`, { replace: true })
+      nav(`/trips/${tripId}/today`, { replace: true })
     },
   })
 

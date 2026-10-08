@@ -3,18 +3,19 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { Button, Header, Screen, SceneCard } from '../components'
 import s from './Scenes.module.css'
+import { useTripStep } from '../lib/steps'
 
 export default function Scenes() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
+  const { trip } = useTripStep(id, ['scenes', 'call'])
   const day = trip.data?.day ?? 1
   const q = useQuery({ queryKey: ['scenes', id, day], queryFn: () => api.getScenes(id, day), enabled: !!trip.data })
   const scenes = q.data?.scenes
 
   return (
     <Screen>
-      <Header title={scenes ? `장면 ${scenes.length}개를 찾았어요` : '장면을 불러오는 중'} onBack={() => nav(`/trips/${id}/today/upload`)} />
+      <Header title={scenes ? `장면 ${scenes.length}개를 찾았어요` : '장면을 불러오는 중'} onBack={() => nav('/')} />
       {q.isError || trip.isError ? (
         <div className={s.state}>
           <p>장면을 불러오지 못했어요.<br />올린 사진은 그대로 저장돼 있어요.</p>
