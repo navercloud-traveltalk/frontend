@@ -4,20 +4,24 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { Button, Screen, Tag } from '../components'
 import s from './Draft.module.css'
-import { useTripStep } from '../lib/steps'
+import { nextOpenDay, resumePath, useTripStep } from '../lib/steps'
 
 /** /trips/:id/today/draft — 오늘의 챕터 초안 (보통 날 / 마지막 날) */
 export default function Draft() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const { trip } = useTripStep(id, ['draft'])
-  const day = trip.data?.day ?? 1
+  const { trip, day } = useTripStep(id, ['draft'])
   const q = useQuery({ queryKey: ['chapter', id, day], queryFn: () => api.getChapter(id, day), enabled: !!trip.data })
   const finish = useMutation({
     mutationFn: () => api.finishTrip(id),
     onSuccess: ({ jobId, bookId }) => nav(`/trips/${id}/binding`, { replace: true, state: { jobId, bookId } }),
   })
-  const lastDay = !!trip.data && trip.data.day >= trip.data.totalDays
+  const days = trip.data?.days
+  // 책은 완료된 일차가 1개 이상이면 언제든 엮을 수 있다(서버 days 가 없으면 이전처럼 마지막 날에만)
+  const canBind = days ? days.some((d) => d.status === 'DONE') : !!trip.data && trip.data.day >= trip.data.totalDays
+  // 아직 기록하지 않은 일차(여행 중이면 오늘까지만)
+  const nextDay = trip.data ? nextOpenDay(days, trip.data.day, day) : undefined
+  const lastDay = canBind && !nextDay
 
   const back = () => nav('/')
   return (
@@ -46,9 +50,18 @@ export default function Draft() {
             <div className={s.chips}>{q.data.moments.map((m) => <Tag key={m} size="md">{m}</Tag>)}</div>
           </section>
           <div className={s.bottom}>
-            {lastDay ? (
+            {nextDay ? (
               <>
-                <p className={s.lastNote}>여행의 마지막 날이에요</p>
+                <p className={s.lastNote}>아직 {nextDay}일차 이야기가 남아 있어요</p>
+                <div className={s.buttons}>
+                  <Button onClick={() => nav(resumePath(id, nextDay))}>{nextDay}일차 기록하기</Button>
+                  {canBind && <Button variant="text" disabled={finish.isPending} onClick={() => finish.mutate()}>{finish.isPending ? '책을 엮기 시작하는 중…' : '여기까지로 책 만들기'}</Button>}
+                </div>
+                {finish.isError && <p className={s.err}>책 만들기를 시작하지 못했어요. 기록은 그대로 저장돼 있어요.</p>}
+              </>
+            ) : lastDay ? (
+              <>
+                <p className={s.lastNote}>{trip.data && trip.data.day >= trip.data.totalDays ? '여행의 마지막 날이에요' : '지금까지의 이야기로 책을 만들 수 있어요'}</p>
                 <div className={s.buttons}>
                   <Button disabled={finish.isPending} onClick={() => finish.mutate()}>{finish.isPending ? '책을 엮기 시작하는 중…' : finish.isError ? '다시 시도' : '여행 마치고 책 만들기'}</Button>
                   <Button variant="text" onClick={back}>하루 더 기록하기</Button>

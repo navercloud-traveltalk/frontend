@@ -4,7 +4,7 @@ import { api } from '../api'
 import { Button, Screen } from '../components'
 import { useJob } from '../lib/useJob'
 import s from './Writing.module.css'
-import { useTripStep } from '../lib/steps'
+import { stepPath, useTripStep } from '../lib/steps'
 
 function Step({ state, children }: { state: 'done' | 'now' | 'todo'; children: string }) {
   return (
@@ -43,8 +43,7 @@ export default function Writing() {
   const loc = useLocation()
   const [jobId, setJobId] = useState<string | null>((loc.state as { jobId?: string } | null)?.jobId ?? null)
   const [startFailed, setStartFailed] = useState(false)
-  const { trip, info, ready } = useTripStep(id, ['writing'])
-  const day = trip.data?.day ?? 1
+  const { trip, info, day, ready } = useTripStep(id, ['writing'])
   const job = useJob(jobId)
 
   const start = async () => {
@@ -66,8 +65,8 @@ export default function Writing() {
   }, [ready, info])
 
   useEffect(() => {
-    if (job.data?.status === 'done') nav(`/trips/${id}/today/draft`, { replace: true })
-  }, [job.data?.status, id, nav])
+    if (job.data?.status === 'done') nav(stepPath(id, 'draft', day), { replace: true })
+  }, [job.data?.status, id, day, nav])
 
   const failed = startFailed || job.data?.status === 'failed' || job.isError
   const p = job.data?.progress ?? 0

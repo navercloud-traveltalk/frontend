@@ -3,13 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { Button, Header, Screen, SceneCard } from '../components'
 import s from './Scenes.module.css'
-import { useTripStep } from '../lib/steps'
+import { stepPath, useTripStep } from '../lib/steps'
 
 export default function Scenes() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const { trip } = useTripStep(id, ['scenes', 'call'])
-  const day = trip.data?.day ?? 1
+  const { trip, day } = useTripStep(id, ['scenes', 'call'])
   const q = useQuery({ queryKey: ['scenes', id, day], queryFn: () => api.getScenes(id, day), enabled: !!trip.data })
   const scenes = q.data?.scenes
 
@@ -29,12 +28,12 @@ export default function Scenes() {
             <div className={s.timeline}>
               <span className={s.line} />
               {scenes.map((sc) => (
-                <SceneCard key={sc.id} gap={sc.gap} head={sc.gap ? sc.time : `${sc.time} · ${sc.place}`} title={sc.title} note={sc.note} thumbs={sc.thumbs} />
+                <SceneCard key={sc.id} gap={sc.gap} head={sc.gap || !sc.place ? sc.time : `${sc.time} · ${sc.place}`} title={sc.title} note={sc.note} thumbs={sc.thumbs} />
               ))}
             </div>
           </div>
           <div className={s.actions}>
-            <Button variant="teal" onClick={() => nav(`/trips/${id}/today/call`)}>인터뷰 시작하기</Button>
+            <Button variant="teal" onClick={() => nav(stepPath(id, 'call', day))}>인터뷰 시작하기</Button>
             <Button variant="text" onClick={() => nav('/')}>나중에 할게요</Button>
           </div>
         </>

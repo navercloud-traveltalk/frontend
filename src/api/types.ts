@@ -100,6 +100,8 @@ export interface TripInfo {
   totalDays: number
   /** “7월 14일” */
   dateLabel: string
+  /** 지금 작성할 일차(여행 중=오늘, 지난 여행=아직 끝내지 않은 가장 이른 일차). 없으면 day */
+  currentDay?: number
   /** 일차별 진행 상태(서버가 계산, 없으면 이전 동작) */
   days?: TripDayInfo[]
 }

@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { SAMPLE_PHOTOS } from '../api/mock'
 import { Button, Header, Icon, Screen, TabBar } from '../components'
-import { useTripStep } from '../lib/steps'
+import { resumePath, stepPath, useTripStep } from '../lib/steps'
 import s from './Upload.module.css'
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true'
@@ -22,8 +22,7 @@ export default function Upload() {
   const [error, setError] = useState<string | null>(null)
 
   // 이미 다음 단계로 넘어간 일차면 그 화면으로 보낸다(사진을 다시 올리게 하지 않는다)
-  const { trip, info, ready } = useTripStep(id, ['upload', 'analyzing'])
-  const day = trip.data?.day ?? 1
+  const { trip, info, day, ready } = useTripStep(id, ['upload', 'analyzing'])
   const [resumedCount, setResumedCount] = useState(0)
   // 다시 들어왔을 때 사진 정리가 진행 중이면 그 작업을 이어서 보여 준다
   useEffect(() => {
@@ -47,14 +46,14 @@ export default function Upload() {
     refetchIntervalInBackground: true,
   })
   useEffect(() => {
-    if (job.data?.status === 'done') nav(`/trips/${id}/today/scenes`, { replace: true })
+    if (job.data?.status === 'done') nav(stepPath(id, 'scenes', day), { replace: true })
     // 사진은 모두 저장됐지만 장면 묶기가 실패한 경우: 멈추지 않고 안내 + 다시 시도
     if (job.data?.status === 'failed' || job.isError) {
       setJobId(null)
       setError('사진은 모두 저장됐어요. 장면을 묶지 못했어요.')
       setPhase('failed')
     }
-  }, [job.data?.status, job.isError, id, nav])
+  }, [job.data?.status, job.isError, id, day, nav])
 
   useEffect(() => () => picks.forEach((p) => p.file && URL.revokeObjectURL(p.src)), []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -131,10 +130,16 @@ export default function Upload() {
   const busy = uploading || analyzing
   const pct = uploading ? (total ? doneCount / total : 0) : Math.min(1, job.data?.progress ?? 0)
   const readCount = Math.round(pct * total)
+  /** 사진 없이 인터뷰: 아직 사진을 고르지도 올리지도 않은 일차 */
+  const canTalkOnly = !!info && info.nextStep === 'upload' && uploaded === 0 && picks.length === 0
+  /** 여행 중 오늘 일차면 '오늘', 아니면 'N일차에' */
+  const when = trip.data && day === trip.data.day && trip.data.day === (trip.data.currentDay ?? trip.data.day) ? '오늘' : `${day}일차에`
+  /** 일차 고르기: 여행 중이면 오늘까지, 지난 여행이면 모든 일차 */
+  const dayChips = trip.data?.days && trip.data.totalDays > 1 ? trip.data.days.filter((d) => d.day <= trip.data!.day) : []
 
   return (
     <Screen>
-      <Header title={trip.data ? `${trip.data.dateLabel} · 여행 ${trip.data.day}일차` : '오늘 사진 올리기'} onBack={() => nav('/')} />
+      <Header title={trip.data ? `${info?.dateLabel ?? trip.data.dateLabel} · 여행 ${day}일차` : '오늘 사진 올리기'} onBack={() => nav('/')} />
       <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
 
       {busy || phase === 'failed' ? (
@@ -165,12 +170,23 @@ export default function Upload() {
         </div>
       ) : (
         <div className={s.body}>
-          <p className={s.intro}>오늘 찍은 사진을 한 번에 올려 주세요. 시간과 장소는 자동으로 정리돼요.</p>
+          {dayChips.length > 1 && (
+            <div className={s.days} role="tablist" aria-label="기록할 일차">
+              {dayChips.map((d) => (
+                <button key={d.day} type="button" role="tab" aria-selected={d.day === day}
+                  className={[s.dayChip, d.day === day && s.dayChipOn].filter(Boolean).join(' ')}
+                  onClick={() => d.day !== day && nav(resumePath(id, d.day), { replace: true })}>
+                  {d.day}일차{d.status === 'DONE' && <Icon name="check" size={13} />}
+                </button>
+              ))}
+            </div>
+          )}
+          <p className={s.intro}>{when} 찍은 사진을 한 번에 올려 주세요. 시간과 장소는 자동으로 정리돼요.</p>
           {picks.length === 0 ? (
             <div className={s.empty}>
               <button type="button" className={s.pickBox} onClick={() => fileRef.current?.click()}>
                 <Icon name="image" size={32} />
-                <span>오늘 찍은 사진 고르기</span>
+                <span>{when} 찍은 사진 고르기</span>
               </button>
               {USE_MOCK && <button type="button" className={s.sample} onClick={useSamples}>예시 사진 42장으로 해 볼게요</button>}
               {uploaded > 0 && <p className={s.intro}>이전에 올린 사진 {uploaded}장이 있어요. 그대로 장면을 만들 수 있어요.</p>}
@@ -198,7 +214,10 @@ export default function Upload() {
           {picks.length === 0 && uploaded > 0 ? (
             <Button onClick={startAnalyze}>올린 사진 {uploaded}장으로 장면 만들기</Button>
           ) : picks.length === 0 ? (
-            <Button onClick={() => fileRef.current?.click()}>사진 고르기</Button>
+            <>
+              <Button onClick={() => fileRef.current?.click()}>사진 고르기</Button>
+              {canTalkOnly && <Button variant="text" onClick={() => nav(stepPath(id, 'call', day))}>사진 없이 인터뷰만 하기</Button>}
+            </>
           ) : (
             <Button disabled={total === 0} onClick={startUpload}>사진 {total}장 올리기</Button>
           )}

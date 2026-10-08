@@ -6,7 +6,11 @@ import { mockLiveCaption } from '../../api/mock'
 import { Avatar, Icon, SceneCard, Screen, ThinkingDots, Waveform } from '../../components'
 import { useInterview } from './useInterview'
 import s from './Call.module.css'
-import { useTripStep } from '../../lib/steps'
+import { stepPath, useTripStep } from '../../lib/steps'
+import type { TripDayInfo } from '../../api/types'
+
+/** 인터뷰 화면에 머물 수 있는 단계: 장면을 본 뒤·인터뷰 중, 또는 사진 없이 인터뷰(사진을 아직 올리지 않은 일차) */
+const canCall = (d: TripDayInfo) => d.nextStep === 'scenes' || d.nextStep === 'call' || (d.nextStep === 'upload' && d.photoCount === 0)
 
 const mmss = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`
 
@@ -43,15 +47,16 @@ interface SpeechRecognitionLike {
 export default function Call() {
   const { id = '' } = useParams()
   const nav = useNavigate()
-  const { trip } = useTripStep(id, ['scenes', 'call'])
-  const day = trip.data?.day ?? 1
-  const scenes = useQuery({ queryKey: ['scenes', id, day], queryFn: () => api.getScenes(id, day), enabled: !!trip.data })
+  const { trip, info, day } = useTripStep(id, canCall)
+  // 사진 없이 하는 인터뷰면 장면을 부르지 않는다
+  const photoless = info?.photoCount === 0
+  const scenes = useQuery({ queryKey: ['scenes', id, day], queryFn: () => api.getScenes(id, day), enabled: !!trip.data && !photoless })
   const { state: c, accept, stopRecording, replay, skip, retrySend, openHangup, closeHangup, saveAndEnd, discard, mock } = useInterview(id, day)
   const caption = useCaption(c.phase === 'listening', c.question?.index ?? 0, mock)
 
   const photoCount = scenes.data?.scenes.reduce((n, sc) => n + sc.photoCount, 0)
 
-  if (c.phase === 'incoming') return <Incoming c={c} accept={accept} mock={mock} photoCount={photoCount} onLater={() => nav('/')} />
+  if (c.phase === 'incoming') return <Incoming c={c} accept={accept} mock={mock} photoCount={photoCount} photoless={photoless} onLater={() => nav('/')} />
   if (c.phase === 'wrapUp') return <WrapUp id={id} day={day} c={c} sceneCount={scenes.data?.scenes.length ?? 0} />
 
   const q = c.question
@@ -136,7 +141,7 @@ export default function Call() {
   )
 }
 
-function Incoming({ c, accept, mock, photoCount, onLater }: { c: ReturnType<typeof useInterview>['state']; accept: (o?: { withoutMic?: boolean }) => void; mock: boolean; photoCount?: number; onLater: () => void }) {
+function Incoming({ c, accept, mock, photoCount, photoless, onLater }: { c: ReturnType<typeof useInterview>['state']; accept: (o?: { withoutMic?: boolean }) => void; mock: boolean; photoCount?: number; photoless: boolean; onLater: () => void }) {
   const now = new Date()
   const h = now.getHours()
   const clock = `${h < 12 ? '오전' : '오후'} ${h % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')}`
@@ -148,12 +153,12 @@ function Incoming({ c, accept, mock, photoCount, onLater }: { c: ReturnType<type
           <Avatar size={132} />
           <div className={s.callerText}>
             <p className={s.callerName}>여행말 인터뷰어</p>
-            <p className={s.callerSub}>{photoCount ? `오늘 사진 ${photoCount}장을 봤어요` : '오늘 사진을 봤어요'}</p>
+            <p className={s.callerSub}>{photoless ? '사진 없이 오늘 이야기를 들어 볼게요' : photoCount ? `오늘 사진 ${photoCount}장을 봤어요` : '오늘 사진을 봤어요'}</p>
             <p className={s.callerAsk}>이야기 들려주실래요?</p>
           </div>
           {(c.micError || c.startError) && (
             <div className={s.notice} role="alert">
-              <p>{c.micError ?? c.startErrorMessage ?? '인터뷰를 시작하지 못했어요. 올린 사진과 장면은 그대로 저장돼 있어요. 다시 받아 주세요.'}</p>
+              <p>{c.micError ?? c.startErrorMessage ?? (photoless ? '인터뷰를 시작하지 못했어요. 다시 받아 주세요.' : '인터뷰를 시작하지 못했어요. 올린 사진과 장면은 그대로 저장돼 있어요. 다시 받아 주세요.')}</p>
               {c.micError && mock && <button type="button" onClick={() => accept({ withoutMic: true })}>마이크 없이 체험하기</button>}
             </div>
           )}
@@ -181,7 +186,7 @@ function WrapUp({ id, day, c, sceneCount }: { id: string; day: number; c: Return
     setBusy(true); setErr(false)
     try {
       const { jobId } = await api.createChapter(id, day)
-      nav(`/trips/${id}/today/writing`, { replace: true, state: { jobId } })
+      nav(stepPath(id, 'writing', day), { replace: true, state: { jobId } })
     } catch {
       setErr(true); setBusy(false)
     }
@@ -202,14 +207,15 @@ function WrapUp({ id, day, c, sceneCount }: { id: string; day: number; c: Return
             {!c.alreadyEnded && (
               <div className={s.stats}>
                 <span>질문 {c.answered}개</span><i />
-                <span>{min}분 {sec}초</span><i />
-                <span>장면 {sceneCount}개</span>
+                <span>{min}분 {sec}초</span>
+                {sceneCount > 0 && <><i /><span>장면 {sceneCount}개</span></>}
               </div>
             )}
             {c.moments.length > 0 && <div className={s.moments}>{c.moments.map((m) => <span key={m}>{m}</span>)}</div>}
           </div>
           <div className={s.wrapBottom}>
             {err && <p className={s.wrapErr}>챕터를 만들지 못했어요. 인터뷰 내용은 저장돼 있어요.</p>}
+            {!c.alreadyEnded && c.answered === 0 && <p className={s.wrapErr}>답한 질문이 없으면 챕터를 쓰지 못할 수 있어요.</p>}
             <button type="button" className={s.make} onClick={make} disabled={busy}>{busy ? '챕터를 만드는 중…' : err ? '다시 시도' : '오늘의 챕터 만들기'}</button>
           </div>
         </div>
