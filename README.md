@@ -24,6 +24,10 @@ API 모양은 [`src/api/types.ts`](src/api/types.ts), 호출 함수는 [`src/api
 `GET /trips/:id`(머리글·마지막 날 판단), `GET /trips/:id/days/:day/chapter` 응답 모양, 인터뷰 `answer` 의 `skip=true`·`moments`,
 `GET /users/me`·`PUT /users/me/settings`·`POST …/interview/end`, `DELETE /users/me`. 사용자는 로그인 없이 서버가 발급한 쿠키로 식별한다.
 
+여행 작성 흐름 개선으로 더 쓰는 것(백엔드 README "명세와 다른 점" 참고): `GET /trips/:id` 의 `currentDay`·`days[]`, 책장의 `inProgressTrip.nextStep`,
+`POST /trips` 의 409 `TRIP_IN_PROGRESS`, 사진 없는 일차의 인터뷰 시작. 작성 화면 주소는 `/trips/:id/today/<단계>?day=N` 이고
+`?day` 가 없으면 서버의 `currentDay` 를 쓴다. `/trips/:id/today(?day=N)` 은 그 일차의 다음 단계 화면으로 보낸다.
+
 ## 시연 · 점검용 주소 스위치 (mock 전용)
 
 - `/?scenario=empty|writing|todayDone|binding` 책장 상태 바로 보기

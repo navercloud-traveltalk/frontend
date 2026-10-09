@@ -10,6 +10,7 @@ import Complete from './pages/Complete'
 import Draft from './pages/Draft'
 import NewTrip from './pages/NewTrip'
 import Reader from './pages/Reader'
+import ResumeTrip from './pages/ResumeTrip'
 import Settings from './pages/Settings'
 import Shelf from './pages/Shelf'
 import Scenes from './pages/Scenes'
@@ -65,6 +66,7 @@ export default function App() {
               <Route path="/" element={<Shelf />} />
               <Route path="/today" element={<TodayRedirect />} />
               <Route path="/trips/new" element={<NewTrip />} />
+              <Route path="/trips/:id/today" element={<ResumeTrip />} />
               <Route path="/trips/:id/today/upload" element={<Upload />} />
               <Route path="/trips/:id/today/scenes" element={<Scenes />} />
               <Route path="/trips/:id/today/call" element={<Call />} />

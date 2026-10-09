@@ -8,7 +8,7 @@
 .dim::after { content: ''; position: absolute; inset: 0; background: rgba(246, 241, 232, 0.55); }
 .photoFail::after { content: ''; position: absolute; inset: 0; background: rgba(181, 72, 47, 0.45); }
 .check { position: absolute; top: 7px; right: 7px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 999px; background: var(--red); color: #fff; }
-.fixed { position: sticky; bottom: 76px; display: flex; flex: none; width: 100%; padding: 12px 20px; background: var(--paper); }
+.fixed { position: sticky; bottom: 76px; display: flex; flex: none; flex-direction: column; gap: 4px; width: 100%; padding: 12px 20px; background: var(--paper); }
 
 .empty { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding-bottom: 40px; }
 .pickBox { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 200px; border: 1px dashed var(--red); border-radius: 16px; color: var(--red); font-family: var(--font-serif); font-size: 15px; font-weight: 700; }
@@ -24,3 +24,6 @@
 .bar span { height: 100%; border-radius: 999px; background: var(--red); transition: width 0.3s; }
 .cardNote { font-size: 13px; line-height: 1.5; color: var(--ink-mute); }
 .cardActions { display: flex; flex-direction: column; gap: 8px; }
+.days { display: flex; flex: none; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.dayChip { display: inline-flex; flex: none; align-items: center; gap: 3px; height: 30px; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--paper-light); font-size: 13px; color: var(--ink-soft); }
+.dayChipOn { border-color: var(--teal); background: var(--teal); color: #fff; font-weight: 700; }
