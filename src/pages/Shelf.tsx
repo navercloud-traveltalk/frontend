@@ -65,20 +65,22 @@ function OpenBook({ trip }: { trip: InProgressTrip }) {
 
 function Writing({ trip }: { trip: InProgressTrip }) {
   const nav = useNavigate()
+  // 일차 대신 처음 입력한 여행 기간을 보여 준다(지난 여행은 일차가 마지막 날로 고정돼 보이므로)
+  const period = trip.periodLabel ?? `${trip.day}일차`
   return (
     <div className={[s.writing, trip.phase === 'binding' && s.writingBinding].filter(Boolean).join(' ')}>
       <OpenBook trip={trip} />
       <div className={s.info}>
         {trip.phase === 'writing' && (
           <>
-            <p className={s.kicker}>집필 중 · {trip.place} {trip.day}일차</p>
+            <p className={s.kicker}>집필 중 · {trip.place} {period}</p>
             <p className={s.lead}>오늘 밤 이야기를 기다리고 있어요</p>
             <button type="button" className={s.infoBtn} onClick={() => nav(stepPath(trip.id, trip.nextStep ?? 'upload'))}>{STEP_LABEL[trip.nextStep ?? 'upload']}</button>
           </>
         )}
         {trip.phase === 'todayDone' && (
           <>
-            <p className={s.kicker}>집필 중 · {trip.place} {trip.day}일차 완료</p>
+            <p className={s.kicker}>집필 중 · {trip.place} {period}</p>
             <p className={s.lead}>내일 밤에 다시 만나요</p>
             <button type="button" className={[s.infoBtn, s.infoOutline].join(' ')} onClick={() => nav(`/trips/${trip.id}/today/draft`)}>오늘의 챕터 다시 보기</button>
           </>
