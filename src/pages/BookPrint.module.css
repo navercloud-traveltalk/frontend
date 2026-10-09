@@ -1,0 +1,62 @@
+/* 화면: 종이 미리보기 + 위쪽 도구 막대 / 인쇄: 도구 막대를 숨기고 A5 쪽으로 나눈다 */
+.page { min-height: 100vh; background: var(--line); padding-bottom: 40px; }
+
+.toolbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 12px;
+  max-width: var(--app-width); margin: 0 auto; padding: 12px var(--gutter);
+  background: var(--paper); border-bottom: 1px solid var(--line);
+}
+.toolbar .toolBtn { width: auto; flex: none; height: 44px; padding: 0 16px; }
+.back { flex: none; border: 0; background: none; padding: 0; cursor: pointer; }
+.toolText { flex: 1; min-width: 0; }
+.toolTitle { font-size: var(--fs-15); font-weight: 700; }
+.toolHint { font-size: var(--fs-13); color: var(--ink-soft); }
+
+.doc { max-width: var(--app-width); margin: 16px auto 0; padding: 0 var(--gutter); }
+.doc > section {
+  background: var(--paper-light); border-radius: 4px; box-shadow: var(--shadow-toast);
+  padding: 32px 24px; margin-bottom: 16px;
+}
+
+.cover { text-align: center; }
+.coverPhoto { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 2px; margin-bottom: 24px; }
+.coverTitle { font-size: var(--fs-32); line-height: 1.3; }
+.coverSub { margin-top: 12px; font-family: var(--font-serif); font-size: var(--fs-15); color: var(--ink-soft); }
+.coverStats { margin-top: 8px; font-size: var(--fs-13); color: var(--ink-mute); }
+
+.toc h2 { font-size: var(--fs-20); margin-bottom: 16px; }
+.tocItem { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-family: var(--font-serif); font-size: var(--fs-15); }
+.tocItem span { color: var(--red); font-weight: 700; }
+
+.label { font-size: var(--fs-13); color: var(--teal); font-weight: 700; }
+.title { margin-top: 6px; font-size: var(--fs-24); line-height: 1.35; }
+.figure { margin: 20px 0 0; break-inside: avoid; }
+.figure img { display: block; width: 100%; max-height: 300px; object-fit: cover; border-radius: 2px; }
+.figure figcaption { margin-top: 6px; font-size: var(--fs-11); color: var(--ink-mute); }
+.text { margin-top: 20px; font-family: var(--font-serif); font-size: var(--fs-15); line-height: 1.9; color: var(--ink); }
+.text p + p { margin-top: 12px; }
+.text p { orphans: 3; widows: 3; }
+.quote {
+  margin: 24px 0 0; padding: 12px 0 12px 16px; border-left: 3px solid var(--red);
+  font-family: var(--font-serif); font-size: var(--fs-17); font-weight: 700; line-height: 1.6; break-inside: avoid;
+}
+
+@page { size: A5; margin: 18mm 16mm; }
+
+@media print {
+  :global(html), :global(body) { background: #fff !important; }
+  .page { min-height: 0; background: none; padding: 0; }
+  .toolbar { display: none; }
+  .doc { max-width: none; margin: 0; padding: 0; }
+  .doc > section { background: none; box-shadow: none; border-radius: 0; padding: 0; margin: 0; }
+  /* 표지·목차는 한 쪽씩, 챕터는 늘 새 쪽에서 시작 */
+  .cover, .toc { break-after: page; }
+  .chapter + .chapter { break-before: page; }
+  .cover { padding-top: 10mm; }
+  .coverPhoto { max-height: 120mm; }
+  .figure img { max-height: 75mm; }
+  .text { font-size: 10.5pt; line-height: 1.85; }
+  .title { font-size: 17pt; }
+  .coverTitle { font-size: 24pt; }
+}

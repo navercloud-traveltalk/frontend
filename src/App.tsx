@@ -5,6 +5,7 @@ import { Button, Screen } from './components'
 import { useMe } from './lib/me'
 import Binding from './pages/Binding'
 import BookDetail from './pages/BookDetail'
+import BookPrint from './pages/BookPrint'
 import Call from './pages/call/Call'
 import Complete from './pages/Complete'
 import Draft from './pages/Draft'
@@ -76,6 +77,7 @@ export default function App() {
               <Route path="/books/:id/complete" element={<Complete />} />
               <Route path="/books/:id" element={<BookDetail />} />
               <Route path="/books/:id/read" element={<Reader />} />
+              <Route path="/books/:id/print" element={<BookPrint />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

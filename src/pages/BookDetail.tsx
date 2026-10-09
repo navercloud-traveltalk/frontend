@@ -13,17 +13,8 @@ export default function BookDetail() {
   const q = useQuery({ queryKey: ['book', id], queryFn: () => api.getBook(id) })
   const [sheet, setSheet] = useState<null | 'style' | 'pdf'>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [pdfBusy, setPdfBusy] = useState(false)
   const say = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 2200) }
   const b = q.data
-
-  const makePdf = async () => {
-    setPdfBusy(true)
-    await new Promise((r) => setTimeout(r, 1500)) // 시연용: 실제 PDF 변환은 서버 담당
-    setPdfBusy(false)
-    setSheet(null)
-    say('PDF가 준비됐어요')
-  }
 
   return (
     <Screen>
@@ -64,9 +55,9 @@ export default function BookDetail() {
             </div>
           </div>
           <RestyleSheet open={sheet === 'style'} bookId={id} onClose={() => setSheet(null)} onDone={() => { setSheet(null); say('문체를 바꿨어요') }} />
-          <BottomSheet open={sheet === 'pdf'} onClose={() => !pdfBusy && setSheet(null)} title="PDF로 내보내기">
-            <p className={s.pdfText}>사진과 이야기를 한 권의 PDF로 만들어 드려요. 1분쯤 걸려요.</p>
-            <Button disabled={pdfBusy} onClick={makePdf}>{pdfBusy ? 'PDF를 만드는 중…' : 'PDF 만들기'}</Button>
+          <BottomSheet open={sheet === 'pdf'} onClose={() => setSheet(null)} title="PDF로 내보내기">
+            <p className={s.pdfText}>사진과 이야기를 한 권으로 모아 인쇄 창을 열어 드려요. 대상에서 「PDF로 저장」을 고르면 PDF 파일이 돼요.</p>
+            <Button onClick={() => nav(`/books/${id}/print`)}>PDF 만들기</Button>
           </BottomSheet>
         </>
       )}
