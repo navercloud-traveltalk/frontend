@@ -325,7 +325,7 @@ const FIRST: Record<StyleCode, string> = {
 }
 const CAFE: Evidence = { photoUrl: '/img/evidence-photo.png', photoLabel: '사진 · 16:52 골목 카페', photoNote: '비 내리던 골목의 작은 카페', transcript: '비 왔어요 갑자기. 우산 없어서 골목 카페 들어갔는데…', audioUrl: VOICE, interviewLabel: '인터뷰 · 2일차' }
 
-let currentStyle: StyleCode = 'ESSAY'
+let currentStyle: StyleCode = 'EMOTIONAL'
 export async function mockGetChapterContent(_bookId: string, n: number): Promise<ChapterContent> {
   await delay()
   const style = currentStyle
