@@ -46,7 +46,7 @@ function save(db: MockDb) {
 function applyScenario(db: MockDb): MockDb {
   const p = new URLSearchParams(location.search).get('scenario') as Scenario | null
   if (!p) return db
-  const trip = (phase: TripPhase, extra: Partial<InProgressTrip> = {}): InProgressTrip => ({ id: 't1', place: '전주', day: 2, phase, latestPhotoUrl: '/img/photo-writing.png', ...extra })
+  const trip = (phase: TripPhase, extra: Partial<InProgressTrip> = {}): InProgressTrip => ({ id: 't1', place: '전주', day: 2, phase, latestPhotoUrl: '/img/photo-writing.png', periodLabel: '7월 13일 ~ 7월 15일', ...extra })
   if (p === 'empty') return { ...db, trip: null, books: [] }
   if (p === 'writing') return { ...db, trip: trip('writing'), books: SEED_BOOKS }
   if (p === 'todayDone') return { ...db, trip: trip('todayDone'), books: SEED_BOOKS }
@@ -101,11 +101,17 @@ export async function mockGetBookshelf(): Promise<BookshelfResponse> {
   return { nickname: db.nickname || '서준호', inProgressTrip: db.trip, books: db.books }
 }
 
+/** "2026-10-06","2026-10-08" → "10월 6일 ~ 10월 8일" (서버 TripCalendar.periodLabel 과 같은 모양) */
+function mockPeriodLabel(start: string, end: string): string {
+  const label = (d: string) => { const [, m, day] = d.split('-').map(Number); return `${m}월 ${day}일` }
+  return start === end ? label(start) : `${label(start)} ~ ${label(end)}`
+}
+
 export async function mockCreateTrip(req: CreateTripRequest): Promise<CreateTripResponse> {
   await delay()
   const db = load()
   const tripId = 't1'
-  save({ ...db, trip: { id: tripId, place: req.place, day: 1, phase: 'writing', latestPhotoUrl: '/img/photo-writing.png' } })
+  save({ ...db, trip: { id: tripId, place: req.place, day: 1, phase: 'writing', latestPhotoUrl: '/img/photo-writing.png', periodLabel: mockPeriodLabel(req.startDate, req.endDate) } })
   try { localStorage.setItem('yhm.mock.meta', JSON.stringify({ startDate: req.startDate, endDate: req.endDate })) } catch { /* ignore */ }
   return { tripId }
 }

@@ -55,6 +55,8 @@ export interface InProgressTrip {
   bindingProgress?: number
   /** 그 일차에서 다시 들어갈 화면(서버 계산). 책을 엮는 중이면 없다 */
   nextStep?: NextStep
+  /** 사용자가 입력한 여행 기간 “10월 6일 ~ 10월 8일”. 없으면 day 로 “N일차” 표시 */
+  periodLabel?: string
 }
 
 /** 일차에서 다음에 할 화면: 사진 올리기 · 사진 정리 중 · 장면 확인 · 인터뷰(이어 하기) · 챕터 작성 · 챕터 확인 */
