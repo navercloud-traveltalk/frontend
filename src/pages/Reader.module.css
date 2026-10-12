@@ -19,11 +19,6 @@
 .progress p { font-size: 10px; line-height: normal; color: var(--ink-mute); text-align: right; }
 .state { display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; font-size: 15px; line-height: 1.6; color: var(--ink-soft); }
 
-/* 쪽 넘기기: 화면 양 끝 가장자리를 눌러도 넘어간다 (제목 막대 아래만) */
-.nav { position: absolute; top: 120px; bottom: 60px; left: 0; right: 0; display: flex; justify-content: space-between; pointer-events: none; }
-.nav button { width: 22px; height: 100%; pointer-events: auto; }
-.nav button:disabled { pointer-events: none; }
-
 /* 근거 시트 */
 .evBody { display: flex; flex: 1; flex-direction: column; gap: 16px; }
 .evPhoto { display: flex; flex: none; align-items: center; gap: 12px; }

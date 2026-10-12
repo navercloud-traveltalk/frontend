@@ -1,0 +1,4 @@
+.nav { display: flex; flex: none; align-items: center; justify-content: center; gap: 24px; width: 100%; }
+.nav button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; color: var(--ink-soft); }
+.nav button:disabled { opacity: 0.2; cursor: default; }
+.nav span { color: var(--ink-mute); font-size: 12px; font-weight: 500; }

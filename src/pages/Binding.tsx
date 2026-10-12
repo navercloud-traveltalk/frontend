@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { Button, Screen } from '../components'
 import { useJob } from '../lib/useJob'
+import { useFinishTrip } from '../lib/useFinishTrip'
 import s from './Binding.module.css'
 
 type St = 'done' | 'now' | 'todo'
@@ -25,32 +27,29 @@ export default function Binding() {
   const st = loc.state as { jobId?: string; bookId?: string } | null
   const [jobId, setJobId] = useState<string | null>(st?.jobId ?? null)
   const [bookId, setBookId] = useState<string | null>(st?.bookId ?? null)
-  const [startFailed, setStartFailed] = useState(false)
+  const attempted = useRef(false)
   const job = useJob(jobId)
+  const trip = useQuery({ queryKey: ['trip', id], queryFn: () => api.getTrip(id) })
 
-  const start = async () => {
-    setStartFailed(false)
-    try {
-      const r = await api.finishTrip(id)
-      setJobId(r.jobId)
-      setBookId(r.bookId)
-    } catch {
-      setStartFailed(true)
-    }
-  }
+  const { mutate: start, isPending: starting, isError: startFailed } = useFinishTrip(id, r => {
+    setJobId(r.jobId)
+    setBookId(r.bookId)
+  })
   useEffect(() => {
-    if (!jobId) void start()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (jobId || attempted.current) return
+    attempted.current = true
+    start()
+  }, [jobId, start])
 
   useEffect(() => {
     if (job.data?.status === 'done') nav(bookId ? `/books/${bookId}/complete` : '/', { replace: true })
   }, [job.data?.status, bookId, nav])
 
-  const failed = startFailed || job.data?.status === 'failed' || job.isError
-  const p = job.data?.progress ?? 0
+  const failed = !starting && (startFailed || job.data?.status === 'failed' || job.isError)
+  const p = starting ? 0 : job.data?.progress ?? 0
   const stage = p < 0.34 ? 0 : p < 0.67 ? 1 : 2
   const fill = 25 + p * 55
+  const label = trip.data ? `${trip.data.place} · ${trip.data.totalDays}일` : '여행 이야기'
 
   return (
     <Screen>
@@ -63,7 +62,7 @@ export default function Binding() {
             <div className={s.cover}>
               <span className={s.fill} style={{ height: `${fill}%` }} />
               <span className={s.band} />
-              <p className={s.coverLabel}>전주 · 3일</p>
+              <p className={s.coverLabel}>{label}</p>
               <span className={s.amber} />
               <div className={s.lines}><i style={{ width: 66 }} /><i style={{ width: 52 }} /></div>
               <span className={s.brand}>여행말</span>
@@ -74,7 +73,7 @@ export default function Binding() {
           </div>
           <div className={s.text}>
             <p className={s.title}>{failed ? '책을 엮지 못했어요' : '책을 엮고 있어요'}</p>
-            <p className={s.sub}>{failed ? '기록한 이야기는 모두 저장돼 있어요' : '전주 · 3일의 이야기'}</p>
+            <p className={s.sub}>{failed ? '기록한 이야기는 모두 저장돼 있어요' : `${label}의 이야기`}</p>
           </div>
         </div>
 
@@ -86,11 +85,11 @@ export default function Binding() {
 
         <div className={s.bottom}>
           {failed ? (
-            <Button onClick={() => { setJobId(null); void start() }}>다시 시도</Button>
+            <Button onClick={() => start()}>다시 시도</Button>
           ) : (
             <p className={s.note}>1분쯤 걸려요. 화면을 닫아도 완성되면 책장에 꽂아 둘게요.</p>
           )}
-          <button type="button" className={s.leave} onClick={() => nav('/')}>책장에서 기다리기</button>
+          <button type="button" className={s.leave} disabled={starting} onClick={() => nav('/')}>책장에서 기다리기</button>
         </div>
       </div>
     </Screen>

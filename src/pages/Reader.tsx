@@ -4,6 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../api'
 import type { Evidence } from '../api/types'
 import { Button, Icon, RestyleSheet, Screen, Toast } from '../components'
+import { DayNavigation } from '../components/DayNavigation'
 import { BottomSheet } from '../components/BottomSheet'
 import { getSettings, saveSettings } from '../lib/settings'
 import { playVoice, stopVoice } from '../lib/voice'
@@ -29,9 +30,10 @@ export default function Reader() {
   const [toast, setToast] = useState<string | null>(null)
   const [playing, setPlaying] = useState<string | null>(null)
   const touch = useRef<number | null>(null)
+  const page = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => () => stopVoice(), [])
-  useEffect(() => { setEvidence(null); stopVoice(); setPlaying(null) }, [n])
+  useEffect(() => { setEvidence(null); stopVoice(); setPlaying(null); if (page.current) page.current.scrollTop = 0 }, [n])
 
   const say = (m: string) => { setToast(m); window.setTimeout(() => setToast(null), 2000) }
   const go = (to: number) => { if (c && to >= 1 && to <= c.total) setSp({ n: String(to) }, { replace: true }) }
@@ -51,6 +53,7 @@ export default function Reader() {
   return (
     <Screen>
       <div
+        ref={page}
         className={s.page}
         style={{ ['--fs' as string]: `${fs}px`, opacity: evidence || sheet ? 0.46 : 1 }}
         onTouchStart={(e) => { touch.current = e.touches[0].clientX }}
@@ -101,18 +104,15 @@ export default function Reader() {
                 </button>}
               </div>
             )}
+            <DayNavigation label={c.label.split('·')[0].trim()}
+              onPrevious={n > 1 ? () => go(n - 1) : undefined}
+              onNext={n < c.total ? () => go(n + 1) : undefined} />
             <div className={s.progress}>
               <div className={s.bar3}><span style={{ width: `${(c.page / c.pages) * 100}%` }} /></div>
               <p>{c.page} / {c.pages}</p>
             </div>
           </>
         )}
-      </div>
-
-      {/* 이 쪽을 건너뛰는 화살표 (키보드·데스크톱용) */}
-      <div className={s.nav} aria-hidden={!c}>
-        <button type="button" disabled={!c || n <= 1} onClick={() => go(n - 1)} aria-label="이전 쪽" />
-        <button type="button" disabled={!c || n >= (c?.total ?? 1)} onClick={() => go(n + 1)} aria-label="다음 쪽" />
       </div>
 
       <BottomSheet open={!!evidence} onClose={() => { setEvidence(null); stopVoice(); setPlaying(null) }} title="이 문장의 근거" minHeight={440}>

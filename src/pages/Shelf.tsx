@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { STEP_LABEL, stepPath } from '../lib/steps'
 import { api } from '../api'
@@ -6,6 +7,8 @@ import type { BookSummary, InProgressTrip } from '../api/types'
 import { BookCover, BookSpine, Button, Header, Icon, Screen, TabBar } from '../components'
 import { spineWidth } from '../components/BookSpine'
 import s from './Shelf.module.css'
+import { BINDING_PREVIEW_KEY, useBindingPreview } from '../lib/useBindingPreview'
+import { useJob } from '../lib/useJob'
 
 function Book({ b, onOpen }: { b: BookSummary; onOpen: () => void }) {
   if (b.shelfStyle === 'spine') {
@@ -29,12 +32,12 @@ function OpenBook({ trip }: { trip: InProgressTrip }) {
       <div className={s.openBook}>
         <div className={s.page}>
           <div className={s.coverPage}>
-            <p className={s.pageLabel}>표지 고르는 중</p>
+            <p className={s.pageLabel}>{trip.jobStatus === 'done' ? '표지 완성' : '표지 고르는 중'}</p>
             <span className={s.coverLine} />
             <span className={s.coverSlot} />
           </div>
           <div className={s.blank}>
-            <p className={s.pageLabel}>책을 엮는 중</p>
+            <p className={s.pageLabel}>{trip.jobStatus === 'done' ? '책장에 꽂는 중' : '책을 엮는 중'}</p>
             <span className={s.rule} />
             <span className={s.rule} />
             <span className={s.rule} style={{ width: 56 }} />
@@ -74,22 +77,23 @@ function Writing({ trip }: { trip: InProgressTrip }) {
         {trip.phase === 'writing' && (
           <>
             <p className={s.kicker}>집필 중 · {trip.place} {period}</p>
-            <p className={s.lead}>오늘 밤 이야기를 기다리고 있어요</p>
-            <button type="button" className={s.infoBtn} onClick={() => nav(stepPath(trip.id, trip.nextStep ?? 'upload'))}>{STEP_LABEL[trip.nextStep ?? 'upload']}</button>
+            <p className={s.lead}>{trip.jobStatus === 'failed' ? '이야기를 다 쓰지 못했어요' : trip.jobStatus === 'running' && trip.nextStep === 'writing' ? '오늘의 이야기를 쓰고 있어요' : '오늘 밤 이야기를 기다리고 있어요'}</p>
+            <button type="button" className={s.infoBtn} onClick={() => nav(stepPath(trip.id, trip.nextStep ?? 'upload', trip.day))}>{trip.jobStatus === 'failed' && trip.nextStep === 'writing' ? '이야기 다시 쓰기' : STEP_LABEL[trip.nextStep ?? 'upload']}</button>
           </>
         )}
         {trip.phase === 'todayDone' && (
           <>
             <p className={s.kicker}>집필 중 · {trip.place} {period}</p>
-            <p className={s.lead}>내일 밤에 다시 만나요</p>
-            <button type="button" className={[s.infoBtn, s.infoOutline].join(' ')} onClick={() => nav(`/trips/${trip.id}/today/draft`)}>오늘의 챕터 다시 보기</button>
+            <p className={s.lead}>오늘의 이야기가 완성됐어요</p>
+            <button type="button" className={[s.infoBtn, s.infoOutline].join(' ')} onClick={() => nav(stepPath(trip.id, 'draft', trip.day))}>완성된 이야기 보기</button>
           </>
         )}
         {trip.phase === 'binding' && (
           <>
-            <p className={s.kicker}>책을 엮는 중 · {trip.place}</p>
-            <p className={s.lead}>곧 책장에 꽂힐 거예요</p>
-            <div className={s.progress}><span style={{ width: `${Math.round((trip.bindingProgress ?? 0.6) * 100)}%` }} /></div>
+            <p className={s.kicker}>{trip.jobStatus === 'failed' ? '책 엮기 다시 시도' : trip.jobStatus === 'done' ? '완성된 책' : '책을 엮는 중'} · {trip.place}</p>
+            <p className={s.lead}>{trip.jobStatus === 'failed' ? '기록한 이야기는 저장돼 있어요' : trip.jobStatus === 'done' ? '책장에 꽂고 있어요' : '곧 책장에 꽂힐 거예요'}</p>
+            {trip.jobStatus !== 'failed' && <div className={[s.progress, trip.jobStatus === 'done' && s.progressFinished].filter(Boolean).join(' ')} role="progressbar" aria-label="책 엮기 진행" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((trip.bindingProgress ?? 0) * 100)}><span style={{ width: `${Math.round((trip.bindingProgress ?? 0) * 100)}%` }} /></div>}
+            <button type="button" className={s.infoBtn} onClick={() => nav(`/trips/${trip.id}/binding`)}>{trip.jobStatus === 'failed' ? '책 엮기 다시 시도' : '책 엮는 과정 보기'}</button>
           </>
         )}
       </div>
@@ -99,7 +103,32 @@ function Writing({ trip }: { trip: InProgressTrip }) {
 
 export default function Shelf() {
   const nav = useNavigate()
-  const q = useQuery({ queryKey: ['bookshelf'], queryFn: api.getBookshelf })
+  const qc = useQueryClient()
+  const binding = useBindingPreview()
+  const preview = binding.data
+  const trackedJob = useJob(preview?.jobId ?? null)
+  const q = useQuery({
+    queryKey: ['bookshelf'], queryFn: api.getBookshelf,
+    refetchOnMount: 'always', refetchOnWindowFocus: true,
+    refetchInterval: (query) => {
+      const trip = query.state.data?.inProgressTrip
+      return trip && (trip.phase === 'binding' || trip.nextStep === 'writing' || trip.nextStep === 'analyzing') ? 2000 : false
+    },
+    refetchIntervalInBackground: true,
+  })
+  const previewFits = !q.data?.inProgressTrip || q.data.inProgressTrip.id === preview?.trip.id
+  const previewFailed = trackedJob.data?.status === 'failed'
+    || (q.data?.inProgressTrip?.id === preview?.trip.id && q.data?.inProgressTrip?.jobStatus === 'failed')
+  const completed = trackedJob.data?.status === 'done'
+    || !!q.data?.books.some(b => b.id === (preview?.bookId ?? preview?.trip.id))
+  useEffect(() => {
+    if (!preview || !q.data) return
+    if (!previewFits || previewFailed) { qc.setQueryData(BINDING_PREVIEW_KEY, null); return }
+    if (!completed) return
+    // 서버는 이미 완료됐다. 책을 꽂는 짧은 전환을 보여 준 뒤 완성된 표지로 바꾼다.
+    const timer = window.setTimeout(() => { qc.setQueryData(BINDING_PREVIEW_KEY, null); void qc.invalidateQueries({ queryKey: ['bookshelf'] }) }, 800)
+    return () => window.clearTimeout(timer)
+  }, [preview, q.data, previewFits, previewFailed, completed, qc])
 
   if (q.isPending || q.isError) {
     return (
@@ -120,7 +149,13 @@ export default function Shelf() {
     )
   }
 
-  const { nickname, inProgressTrip: trip, books } = q.data
+  const { nickname, inProgressTrip, books: storedBooks } = q.data
+  const presenting = !!preview && previewFits && !previewFailed
+  const trip: InProgressTrip | null = presenting ? { ...preview.trip,
+    jobStatus: completed ? 'done' : 'running',
+    bindingProgress: completed ? 1 : trackedJob.data?.progress ?? inProgressTrip?.bindingProgress ?? 0,
+  } : inProgressTrip
+  const books = presenting ? storedBooks.filter(b => b.id !== (preview.bookId ?? preview.trip.id)) : storedBooks
   const header = <Header title={`${nickname}님의 책장`} sub={`여행 ${books.length}권`} height={trip?.phase === 'binding' ? 88 : undefined} />
   const open = (b: BookSummary) => () => nav(`/books/${b.id}`)
 

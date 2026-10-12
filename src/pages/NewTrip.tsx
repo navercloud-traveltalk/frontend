@@ -5,6 +5,7 @@ import { api, ApiError } from '../api'
 import type { Companion, InProgressTrip } from '../api/types'
 import { BottomSheet, Button, Chip, Header, Icon, Screen } from '../components'
 import { stepPath } from '../lib/steps'
+import { useFinishTrip } from '../lib/useFinishTrip'
 import s from './NewTrip.module.css'
 
 const COMPANIONS: { code: Companion; label: string }[] = [
@@ -26,10 +27,7 @@ function InProgressNotice({ trip }: { trip: InProgressTrip }) {
   const binding = trip.phase === 'binding'
   const detail = useQuery({ queryKey: ['trip', trip.id], queryFn: () => api.getTrip(trip.id), enabled: !binding })
   const canBind = !!detail.data?.days?.some((d) => d.status === 'DONE')
-  const finish = useMutation({
-    mutationFn: () => api.finishTrip(trip.id),
-    onSuccess: ({ jobId, bookId }) => nav(`/trips/${trip.id}/binding`, { replace: true, state: { jobId, bookId } }),
-  })
+  const finish = useFinishTrip(trip.id, ({ jobId, bookId }) => nav(`/trips/${trip.id}/binding`, { replace: true, state: { jobId, bookId } }))
   return (
     <div className={s.form}>
       <div className={s.notice}>
@@ -47,7 +45,7 @@ function InProgressNotice({ trip }: { trip: InProgressTrip }) {
           <Button onClick={() => nav(`/trips/${trip.id}/binding`)}>책 엮는 화면 보기</Button>
         ) : (
           <>
-            <Button onClick={() => nav(stepPath(trip.id, trip.nextStep ?? 'upload'))}>{trip.day}일차 이어서 쓰기</Button>
+            <Button onClick={() => nav(stepPath(trip.id, trip.nextStep ?? 'upload', trip.day))}>{trip.day}일차 이어서 쓰기</Button>
             {canBind && (
               <Button variant="outline" disabled={finish.isPending} onClick={() => finish.mutate()}>
                 {finish.isPending ? '책을 엮기 시작하는 중…' : '쓴 데까지 책으로 엮기'}

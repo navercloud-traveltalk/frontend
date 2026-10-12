@@ -47,7 +47,7 @@ export type TripPhase = 'writing' | 'todayDone' | 'binding'
 export interface InProgressTrip {
   id: string
   place: string
-  /** 현재 몇 일차 */
+  /** 책장 카드에서 열 기록의 일차. 다음 기록을 시작하기 전에는 최근 완성한 일차. */
   day: number
   phase: TripPhase
   latestPhotoUrl?: string
@@ -57,6 +57,8 @@ export interface InProgressTrip {
   nextStep?: NextStep
   /** 사용자가 입력한 여행 기간 “10월 6일 ~ 10월 8일”. 없으면 day 로 “N일차” 표시 */
   periodLabel?: string
+  /** 진행 중인 단계의 최신 작업 상태. 실패하면 책장에서도 다시 시도할 수 있다. */
+  jobStatus?: JobStatus
 }
 
 /** 일차에서 다음에 할 화면: 사진 올리기 · 사진 정리 중 · 장면 확인 · 인터뷰(이어 하기) · 챕터 작성 · 챕터 확인 */
