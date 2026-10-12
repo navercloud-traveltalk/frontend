@@ -45,10 +45,11 @@ export function useTripStep(tripId: string, allowed?: NextStep[] | ((d: TripDayI
   const day = Number.isInteger(asked) && asked >= 1 && asked <= total ? asked : trip.data?.currentDay ?? trip.data?.day ?? 1
   const info = trip.data?.days?.find((d) => d.day === day)
   const fresh = trip.isFetchedAfterMount && !trip.isFetching
-  const checked = useRef(false)
+  const checked = useRef<string | null>(null)
   useEffect(() => {
-    if (!allowed || checked.current || !fresh || !trip.data) return
-    checked.current = true
+    const key = `${tripId}:${day}`
+    if (!allowed || checked.current === key || !fresh || !trip.data) return
+    checked.current = key
     // days 가 없는 응답(목 데이터·이전 서버)이면 지금처럼 그대로 둔다
     if (!info) return
     const ok = typeof allowed === 'function' ? allowed(info) : allowed.includes(info.nextStep)

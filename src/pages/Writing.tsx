@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../api'
 import { Button, Screen } from '../components'
@@ -42,39 +43,39 @@ export default function Writing() {
   const nav = useNavigate()
   const loc = useLocation()
   const [jobId, setJobId] = useState<string | null>((loc.state as { jobId?: string } | null)?.jobId ?? null)
-  const [startFailed, setStartFailed] = useState(false)
+  const qc = useQueryClient()
+  const attempted = useRef(false)
   const { trip, info, day, ready } = useTripStep(id, ['writing'])
   const job = useJob(jobId)
 
-  const start = async () => {
-    setStartFailed(false)
-    try {
-      const { jobId } = await api.createChapter(id, day)
+  const { mutate: start, isPending: starting, isError: startFailed } = useMutation({
+    mutationFn: () => api.createChapter(id, day),
+    onSuccess: ({ jobId }) => {
       setJobId(jobId)
-    } catch {
-      setStartFailed(true)
-    }
-  }
+      void qc.invalidateQueries({ queryKey: ['bookshelf'] })
+    },
+  })
 
   // 새로고침·재진입으로 jobId를 잃었으면: 진행 중 작업이 있으면 그것을, 없으면 작성을 시작(이미 끝난 일차면 가드가 초안으로 보낸다)
   useEffect(() => {
-    if (jobId || !ready || (info && info.nextStep !== 'writing')) return
+    if (jobId || attempted.current || !ready || (info && info.nextStep !== 'writing')) return
+    attempted.current = true
     if (info?.jobId) setJobId(info.jobId)
-    else void start()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, info])
+    else start()
+  }, [jobId, ready, info, start])
 
   useEffect(() => {
     if (job.data?.status === 'done') nav(stepPath(id, 'draft', day), { replace: true })
   }, [job.data?.status, id, day, nav])
 
-  const failed = startFailed || job.data?.status === 'failed' || job.isError
-  const p = job.data?.progress ?? 0
+  const failed = !starting && (startFailed || job.data?.status === 'failed' || job.isError)
+  const p = starting ? 0 : job.data?.progress ?? 0
   const stage = p < 0.5 ? 0 : 1
   const place = trip.data?.place ?? '전주'
 
-  const retry = () => { setJobId(null); void start() }
-  const leave = <button type="button" className={s.leave} onClick={() => nav('/')}>책장에서 기다리기</button>
+  const retry = () => start()
+  const isFinalDay = !!trip.data && day === trip.data.totalDays
+  const leave = <button type="button" className={s.leave} disabled={starting} onClick={() => nav('/')}>{failed || isFinalDay ? '책장으로 돌아가기' : '책장에서 기다리기'}</button>
 
   if (failed) {
     return (

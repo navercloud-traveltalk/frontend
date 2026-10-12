@@ -20,8 +20,14 @@
 .lead { font-family: var(--font-serif); font-size: 15px; font-weight: 700; line-height: 1.45; color: var(--ink); }
 .infoBtn { display: flex; flex: none; align-items: center; justify-content: center; width: 100%; height: 44px; border-radius: 14px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; white-space: nowrap; }
 .infoOutline { border: 1px solid var(--red); background: transparent; color: var(--red); }
-.progress { display: flex; flex: none; width: 100%; height: 3px; overflow: hidden; border-radius: 2px; background: var(--line); }
-.progress span { height: 100%; border-radius: 2px; background: var(--red); }
+.progress { position: relative; display: flex; flex: none; width: 100%; height: 5px; overflow: hidden; border-radius: 3px; background: var(--line); }
+.progress span { height: 100%; border-radius: 3px; background: var(--red); transition: width 0.6s ease; }
+.progress::after { position: absolute; inset: 0 auto 0 0; width: 35%; border-radius: 3px; background: var(--red); opacity: 0.3; content: ''; animation: bindingPulse 1.6s ease-in-out infinite; }
+@keyframes bindingPulse { from { transform: translateX(-110%); } to { transform: translateX(300%); } }
+.progressFinished span { transform-origin: left; animation: bindingFinish 0.7s ease both; }
+.progressFinished::after { animation: none; opacity: 0; }
+@keyframes bindingFinish { from { transform: scaleX(0.65); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .progress span { transition: none; animation: none; } .progress::after { animation: none; } }
 
 /* 선반 */
 .shelves { display: flex; flex: 1; min-height: 0; flex-direction: column; background: var(--paper-deep); }
